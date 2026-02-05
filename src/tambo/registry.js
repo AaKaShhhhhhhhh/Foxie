@@ -121,7 +121,7 @@ export function lookupByIntent(intent) {
 
   return {
     component,
-    quickActions: quickActionsMap[intent] ?? [],
+    quickActions: quickActionsMap[intent] ?? ['open'],
   };
 }
 
