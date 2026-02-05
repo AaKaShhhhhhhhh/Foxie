@@ -4,8 +4,6 @@
  * Integrates with Tambo React SDK for intelligent UI rendering
  */
 
-import { useTambo } from '@tambo-ai/react';
-
 /**
  * Component registry mapping intents to UI components
  * Tambo will dynamically select which component to render
@@ -104,6 +102,24 @@ export function getRecommendedComponent(intent) {
   }
 
   return component;
+}
+
+/**
+* Back-compat helper for components that expect a registry entry shape.
+*
+* @param {string} intent
+*/
+export function lookupByIntent(intent) {
+  const component = getRecommendedComponent(intent);
+  if (!component) return null;
+
+  const quickActions = {
+    Pomodoro: ['start', 'pause', 'stop'],
+    Notes: ['new', 'save'],
+    TaskManager: ['new', 'complete'],
+  };
+
+  return { component, quickActions: quickActions[component] };
 }
 
 /**

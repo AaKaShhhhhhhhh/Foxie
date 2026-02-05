@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'path';
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('node:path');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -9,7 +9,7 @@ function createWindow() {
     frame: false,
     hasShadow: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },

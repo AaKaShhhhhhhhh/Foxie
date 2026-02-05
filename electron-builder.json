@@ -2,6 +2,7 @@
   "appId": "com.foxie.desktop",
   "files": [
     "dist/**/*",
+    "electron/**/*",
     "node_modules/**/*",
     "package.json"
   ],
