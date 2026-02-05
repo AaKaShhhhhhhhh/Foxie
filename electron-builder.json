@@ -1,0 +1,11 @@
+{
+  "appId": "com.foxie.desktop",
+  "files": [
+    "dist/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "win": {
+    "target": ["nsis"]
+  }
+}
