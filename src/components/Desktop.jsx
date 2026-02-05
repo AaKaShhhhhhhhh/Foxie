@@ -6,7 +6,6 @@ import PetAssistantUltimate from './PetAssistantUltimate';
 import FoxieVoiceUI from './FoxieVoiceUI';
 import FoxieAvatar from './FoxieAvatar';
 import Notifications from './Notifications';
-import TamboIntegration from './TamboIntegration';
 import { AdaptiveUIProvider } from './AdaptiveUIProvider';
 import TamboUI from './TamboUI';
 import Notes from './apps/Notes';
@@ -245,7 +244,6 @@ const Desktop = () => {
 
       {/* Tambo AI Suggestions */}
       <TamboUI />
-      <TamboIntegration appState={appState} />
 
       {/* Notifications */}
       <Notifications notifications={notifications} />
