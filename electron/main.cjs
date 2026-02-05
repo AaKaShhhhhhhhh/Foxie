@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-import path from 'path';
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('node:path');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -9,14 +9,15 @@ function createWindow() {
     frame: false,
     hasShadow: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  const url = process.env.ELECTRON_START_URL || `file://${path.join(__dirname, '../dist/index.html')}`;
-  win.loadURL(url);
+  const indexHtml = path.join(__dirname, '..', 'dist', 'index.html');
+  const startUrl = process.env.ELECTRON_START_URL;
+  win.loadURL(startUrl || `file://${indexHtml}`);
 
   if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools({ mode: 'right' });
