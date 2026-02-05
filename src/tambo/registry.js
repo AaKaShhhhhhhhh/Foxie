@@ -114,14 +114,14 @@ export function lookupByIntent(intent) {
   if (!component) return null;
 
   const quickActionsMap = {
-    Pomodoro: ['start', 'pause', 'stop'],
-    Notes: ['new', 'save'],
-    TaskManager: ['new', 'complete'],
+    'productivity.taskFocus': ['start', 'pause', 'stop'],
+    'productivity.notesTaking': ['new', 'save'],
+    'productivity.taskManagement': ['new', 'complete'],
   };
 
   return {
     component,
-    quickActions: quickActionsMap[component] ?? [],
+    quickActions: quickActionsMap[intent] ?? [],
   };
 }
 
