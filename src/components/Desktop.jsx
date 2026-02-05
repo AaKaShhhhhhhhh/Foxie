@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
 import Window from './Window';
@@ -7,6 +7,8 @@ import FoxieVoiceUI from './FoxieVoiceUI';
 import FoxieAvatar from './FoxieAvatar';
 import Notifications from './Notifications';
 import TamboIntegration from './TamboIntegration';
+import { AdaptiveUIProvider } from './AdaptiveUIProvider';
+import TamboUI from './TamboUI';
 import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
@@ -180,15 +182,19 @@ const Desktop = () => {
   }, [needs, getMood]);
 
   // App state for Tambo analysis
-  const appState = {
-    userActive,
-    windowsOpen: windows.length,
-    lastAppOpened,
-    focusTime,
-    lastActivity: userActive ? 'recent' : 'idle',
-  };
+  const appState = useMemo(
+    () => ({
+      userActive,
+      windowsOpen: windows.length,
+      lastAppOpened,
+      focusTime,
+      lastActivity: userActive ? 'recent' : 'idle',
+    }),
+    [userActive, windows.length, lastAppOpened, focusTime]
+  );
 
   return (
+    <AdaptiveUIProvider appState={appState}>
     <div className="desktop">
       {/* Desktop Background */}
       <div className="desktop-background"></div>
@@ -238,6 +244,7 @@ const Desktop = () => {
       />
 
       {/* Tambo AI Suggestions */}
+      <TamboUI />
       <TamboIntegration appState={appState} />
 
       {/* Notifications */}
@@ -259,6 +266,7 @@ const Desktop = () => {
         minimizedCount={windows.filter((w) => w.isMinimized).length}
       />
     </div>
+    </AdaptiveUIProvider>
   );
 };
 
