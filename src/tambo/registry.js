@@ -113,13 +113,16 @@ export function lookupByIntent(intent) {
   const component = getRecommendedComponent(intent);
   if (!component) return null;
 
-  const quickActions = {
+  const quickActionsMap = {
     Pomodoro: ['start', 'pause', 'stop'],
     Notes: ['new', 'save'],
     TaskManager: ['new', 'complete'],
   };
 
-  return { component, quickActions: quickActions[component] };
+  return {
+    component,
+    quickActions: quickActionsMap[component] ?? [],
+  };
 }
 
 /**

@@ -15,8 +15,12 @@ function createWindow() {
     },
   });
 
-  const url = process.env.ELECTRON_START_URL || `file://${path.join(__dirname, '../dist/index.html')}`;
-  win.loadURL(url);
+  const startUrl = process.env.ELECTRON_START_URL;
+  if (startUrl) {
+    win.loadURL(startUrl);
+  } else {
+    win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  }
 
   if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools({ mode: 'right' });
