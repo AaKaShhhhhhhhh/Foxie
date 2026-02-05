@@ -13,7 +13,7 @@ import React, { useState, useEffect, useCallback, useContext, createContext } fr
 import { useTamboAdaptiveUI } from '../tambo/registry';
 import { reasonAboutState } from '../ai/charlie';
 
-const EMPTY_APP_STATE = {};
+const EMPTY_APP_STATE = Object.freeze({});
 
 // Create context for adaptive UI state
 export const AdaptiveUIContext = createContext(null);

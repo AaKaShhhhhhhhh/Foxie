@@ -28,7 +28,19 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
         }),
       });
 
-      const json = await res.json();
+      const raw = await res.text();
+      let json: any = null;
+      try {
+        json = raw ? JSON.parse(raw) : null;
+      } catch {
+        json = { raw };
+      }
+
+      if (!res.ok) {
+        console.error('LLM request failed:', res.status, res.statusText, json);
+        return { text: `Echo: ${prompt}`, data: json };
+      }
+
       const text = json?.choices?.[0]?.message?.content || JSON.stringify(json);
       return { text, data: json };
     } catch (error) {
