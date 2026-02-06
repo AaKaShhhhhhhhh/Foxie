@@ -71,13 +71,20 @@ export const parseFoxieCommand = async (transcript) => {
     try {
         console.log('FoxieCommands: No regex match, consulting AI brain...');
         const prompt = `
-        You are Foxie, a smart virtual petfox. Map the user's request to a JSON command.
+        You are Foxie, a smart virtual pet fox and desktop assistant.
+        Map the user's request to a JSON command.
         
         Available Commands:
-        - { "type": "OPEN_APP", "app": "Notes" | "Task Manager" | "Pomodoro" | "Dashboard" | "Foxie Assistant" }
-        - { "type": "START_TIMER" } (if user wants to focus, study, work, or set a timer)
-        - { "type": "CHAT", "text": "Your friendly, short response as a cute fox" } (for general conversation)
-        - { "type": "SPIN" } (if they ask you to spin, run around)
+        1. { "type": "OPEN_APP", "app": "Notes" | "Task Manager" | "Pomodoro" | "Dashboard" | "Foxie Assistant", "text": "Friendly confirmation" }
+        2. { "type": "START_TIMER", "text": "Friendly confirmation" }
+        3. { "type": "SPIN", "text": "Friendly confirmation" }
+        4. { "type": "FEED", "text": "Friendly confirmation" }
+        5. { "type": "CHAT", "text": "Your helpful response as Foxie" } (For general questions OR if no other command fits)
+        
+        Guidelines:
+        - If the user asks a question (e.g., "What is 2+2?", "Tell me a joke"), use "CHAT".
+        - If the user wants to do something, map it to the closest command.
+        - Be concise and stay in character (helpful, slightly playful fox).
         
         User Request: "${transcript}"
         
@@ -90,9 +97,11 @@ export const parseFoxieCommand = async (transcript) => {
         const aiCommand = JSON.parse(cleaned);
         
         if (aiCommand && aiCommand.type) {
-             // Fallback text if missing
-             if (aiCommand.type === 'OPEN_APP' && !aiCommand.text) aiCommand.text = `Opening ${aiCommand.app}...`;
-             if (aiCommand.type === 'START_TIMER' && !aiCommand.text) aiCommand.text = 'Starting timer!';
+             // Ensure it's a valid type, fallback to CHAT if unknown
+             const validTypes = ['OPEN_APP', 'START_TIMER', 'SPIN', 'FEED', 'CHAT'];
+             if (!validTypes.includes(aiCommand.type)) {
+                 aiCommand.type = 'CHAT';
+             }
              return aiCommand;
         }
 
@@ -101,5 +110,5 @@ export const parseFoxieCommand = async (transcript) => {
     }
 
     // Final Fallback: Generic chat echo
-    return { type: 'CHAT', text: transcript };
+    return { type: 'CHAT', text: "I'm a bit confused, but I'm here to help! 🦊" };
 };

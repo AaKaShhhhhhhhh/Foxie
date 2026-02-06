@@ -19,14 +19,14 @@ const MotionDiv = motion.div;
  * - Personality-driven mood system
  * - Hand gesture recognition and reactions
  * - Sound effects synchronized with behaviors
- * - Charlie LLM integration for reasoning
+ * - Tambo AI integration for reasoning
  * - Adaptive UI via Tambo
  */
 const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification }) => {
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const handsRef = useRef(null);
-  const charlieQueryRef = useRef(null);
+  const tamboQueryRef = useRef(null);
 
   // Hand tracking state - must be declared before hooks that use it
   const [handVisible] = useState(false);
@@ -322,19 +322,19 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
     }
   }, [voiceSupported, isVoiceListening, startListening]);
   /**
-   * Charlie LLM feedback hook
-   * Occasionally asks Charlie for reasoning about fox behavior
+   * Tambo AI feedback hook
+   * Occasionally asks Tambo for reasoning about fox behavior
    */
   useEffect(() => {
-    const queryCharlie = async () => {
-      if (charlieQueryRef.current) return; // Prevent multiple queries
+    const queryTambo = async () => {
+      if (tamboQueryRef.current) return; // Prevent multiple queries
 
       try {
-        charlieQueryRef.current = true;
+        tamboQueryRef.current = true;
 
-        // Placeholder for Charlie API call
-        // const response = await charlieAPI.query(prompt);
-        // setLastCharlieFeedback(response);
+        // Placeholder for Tambo AI API call
+        // const response = await tamboAPI.query(prompt);
+        // setLastTamboFeedback(response);
 
         // Fallback: local reasoning
         if (!userActive && personality.sociability > 0.7) {
@@ -342,16 +342,16 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
           transitionBehavior('affectionate');
         }
 
-        charlieQueryRef.current = false;
+        tamboQueryRef.current = false;
       } catch (error) {
-        console.log('Charlie query error:', error.message);
-        charlieQueryRef.current = false;
+        console.log('Tambo query error:', error.message);
+        tamboQueryRef.current = false;
       }
     };
 
-    // Query Charlie every 30 seconds during low activity
+    // Query Tambo every 30 seconds during low activity
     if (!userActive) {
-      const timer = setInterval(queryCharlie, 30000);
+      const timer = setInterval(queryTambo, 30000);
       return () => clearInterval(timer);
     }
   }, [userActive, foxMood, personality, onSpeak, transitionBehavior]);

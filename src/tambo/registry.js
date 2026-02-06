@@ -32,23 +32,23 @@ export const componentRegistry = {
 
 /**
  * Intent detection based on user behavior
- * Enhanced with Charlie LLM reasoning
+ * Enhanced with Tambo AI reasoning
  * @param {object} state - Current app state
- * @param {object} charlieInsight - Optional Charlie AI reasoning
+ * @param {object} tamboInsight - Optional Tambo AI reasoning
  * @returns {string} - Detected intent
  */
-export function detectIntent(state, charlieInsight = null) {
+export function detectIntent(state, tamboInsight = null) {
   const { userActive, windowsOpen, lastAppOpened, focusTime = 0 } = state;
 
-  // Use Charlie's reasoning if available
-  if (charlieInsight && charlieInsight.recommendedAction) {
+  // Use Tambo's reasoning if available
+  if (tamboInsight && tamboInsight.recommendedAction) {
     const actionMap = {
       'focus': 'productivity.taskFocus',
       'rest': 'pet.greeting',
       'manage_tasks': 'productivity.taskManagement',
       'take_notes': 'productivity.notesTaking',
     };
-    return actionMap[charlieInsight.recommendedAction] || 'system.desktop';
+    return actionMap[tamboInsight.recommendedAction] || 'system.desktop';
   }
 
   // Fallback to heuristic detection
@@ -128,11 +128,11 @@ export function lookupByIntent(intent) {
 /**
  * Adaptive UI selector - main entry point for Tambo
  * @param {object} state - App state
- * @param {object} charlieInsight - Charlie reasoning
+ * @param {object} tamboInsight - Tambo reasoning
  * @returns {object} - Adaptive UI config
  */
-export function getAdaptiveUI(state, charlieInsight = null) {
-  const intent = detectIntent(state, charlieInsight);
+export function getAdaptiveUI(state, tamboInsight = null) {
+  const intent = detectIntent(state, tamboInsight);
   const component = getRecommendedComponent(intent);
   const priority = calculatePriority(intent);
 
@@ -143,7 +143,7 @@ export function getAdaptiveUI(state, charlieInsight = null) {
     shouldShowNotifications: shouldShowNotifications(intent),
     petVisibility: shouldShowPet(intent),
     suggestedAction: generateSuggestedAction(intent),
-    confidence: charlieInsight?.confidence || 0.7,
+    confidence: tamboInsight?.confidence || 0.7,
   };
 }
 
@@ -199,14 +199,14 @@ function generateSuggestedAction(intent) {
  * 
  * Example usage in a component:
  * ```jsx
- * const { adaptiveUI, isLoading } = useTamboAdaptiveUI(state, charlieInsight);
+ * const { adaptiveUI, isLoading } = useTamboAdaptiveUI(state, tamboInsight);
  * if (isLoading) return <Spinner />;
  * return <DynamicComponent component={adaptiveUI.component} />;
  * ```
  */
-export function useTamboAdaptiveUI(state, charlieInsight = null) {
+export function useTamboAdaptiveUI(state, tamboInsight = null) {
   try {
-    const adaptiveUI = getAdaptiveUI(state, charlieInsight);
+    const adaptiveUI = getAdaptiveUI(state, tamboInsight);
     return {
       adaptiveUI,
       isLoading: false,

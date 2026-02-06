@@ -1,17 +1,17 @@
 /**
  * AdaptiveUIProvider Component
- * Integrates Tambo AI with Charlie LLM for intelligent UI rendering
+ * Integrates Tambo AI with gpt-5.2 for intelligent UI rendering
  * 
  * Features:
  * - Continuous intent detection
  * - Real-time UI adaptation
- * - Charlie reasoning integration
+ * - Tambo reasoning integration
  * - Performance optimized
  */
 
 import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
 import { useTamboAdaptiveUI } from '../tambo/registry';
-import { reasonAboutState } from '../ai/charlie';
+import { reasonAboutState } from '../ai/tambo_llm';
 
 const EMPTY_APP_STATE = Object.freeze({});
 
@@ -52,15 +52,15 @@ export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => 
     confidence: 0.7,
   });
 
-  const [charlieInsight, setCharlieInsight] = useState(null);
+  const [tamboInsight, setTamboInsight] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [lastAnalyzed, setLastAnalyzed] = useState(0);
 
   /**
-   * Get Charlie AI reasoning about current state
+   * Get Tambo AI reasoning about current state
    * Runs periodically to update UI suggestions
    */
-  const analyzeStateWithCharlie = useCallback(async () => {
+  const analyzeStateWithTambo = useCallback(async () => {
     // Throttle analysis to every 5 seconds max
     const now = Date.now();
     if (now - lastAnalyzed < 5000) return;
@@ -74,10 +74,10 @@ export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => 
         focusTime: appState.focusTime || 0,
       });
 
-      // Parse Charlie's insight to determine recommended action
-      const recommendedAction = parseCharlieInsight(insight.insight);
+      // Parse Tambo's insight to determine recommended action
+      const recommendedAction = parseTamboInsight(insight.insight);
 
-      setCharlieInsight({
+      setTamboInsight({
         ...insight,
         recommendedAction,
         confidence: calculateConfidence(insight),
@@ -86,34 +86,34 @@ export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => 
 
       setLastAnalyzed(now);
     } catch (error) {
-      console.error('Failed to analyze with Charlie:', error);
+      console.error('Failed to analyze with Tambo:', error);
     } finally {
       setIsAnalyzing(false);
     }
   }, [appState, lastAnalyzed]);
 
   /**
-   * Update adaptive UI based on current state and Charlie insights
+   * Update adaptive UI based on current state and Tambo insights
    */
   useEffect(() => {
     // Get Tambo's adaptive UI recommendation
-    const { adaptiveUI: newAdaptiveUI, error } = useTamboAdaptiveUI(appState, charlieInsight);
+    const { adaptiveUI: newAdaptiveUI, error } = useTamboAdaptiveUI(appState, tamboInsight);
 
     if (!error) {
       setAdaptiveUI(newAdaptiveUI);
     }
 
-    // Trigger Charlie analysis periodically
-    analyzeStateWithCharlie();
-  }, [appState, charlieInsight, analyzeStateWithCharlie]);
+    // Trigger Tambo analysis periodically
+    analyzeStateWithTambo();
+  }, [appState, tamboInsight, analyzeStateWithTambo]);
 
   const contextValue = {
     adaptiveUI,
-    charlieInsight,
+    tamboInsight,
     isAnalyzing,
     appState,
     // Expose functions for manual control
-    triggerAnalysis: analyzeStateWithCharlie,
+    triggerAnalysis: analyzeStateWithTambo,
     updateAdaptiveUI: (newUI) => setAdaptiveUI({ ...adaptiveUI, ...newUI }),
   };
 
@@ -125,10 +125,10 @@ export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => 
 };
 
 /**
- * Parse Charlie's text insight to determine recommended action
+ * Parse Tambo's text insight to determine recommended action
  * Uses simple keyword matching for MVP
  */
-function parseCharlieInsight(insight) {
+function parseTamboInsight(insight) {
   const insightLower = (insight || '').toLowerCase();
 
   if (
@@ -155,7 +155,7 @@ function parseCharlieInsight(insight) {
 }
 
 /**
- * Calculate confidence level for Charlie's recommendation
+ * Calculate confidence level for Tambo's recommendation
  * Can be enhanced with actual ML confidence scores
  */
 function calculateConfidence(insight) {
@@ -200,7 +200,7 @@ export function useUIRecommendation() {
     recommendedComponent: context?.adaptiveUI?.component,
     suggestedAction: context?.adaptiveUI?.suggestedAction,
     confidence: context?.adaptiveUI?.confidence,
-    charlieThinking: context?.isAnalyzing,
+    tamboThinking: context?.isAnalyzing,
   };
 }
 

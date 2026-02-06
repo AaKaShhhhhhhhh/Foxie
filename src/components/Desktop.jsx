@@ -245,8 +245,11 @@ const Desktop = () => {
         openWindow('Pomodoro');
         addNotification('⏱️ Starting Pomodoro Timer!', 2000);
         break;
+      case 'CHAT':
+        addNotification(`🦊 ${command.text}`, 5000);
+        break;
       default:
-        addNotification(command.text, 2000);
+        addNotification(command.text || "I'm not sure how to do that, but I'm learning! 🦊", 3000);
     }
   }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep]);
 

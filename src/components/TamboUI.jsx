@@ -1,6 +1,6 @@
 /**
  * Tambo UI Component
- * Displays dynamic UI suggestions based on Tambo/Charlie analysis
+ * Displays dynamic UI suggestions based on Tambo AI analysis
  * 
  * Shows a smart suggestion panel that highlights recommended next action
  */
@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const TamboUI = ({ showSuggestions = true }) => {
   const { adaptiveUI, isAnalyzing } = useAdaptiveUI();
-  const { suggestedAction, confidence, charlieThinking } = useUIRecommendation();
+  const { suggestedAction, confidence, tamboThinking } = useUIRecommendation();
 
   if (!showSuggestions) return null;
 
@@ -28,7 +28,7 @@ const TamboUI = ({ showSuggestions = true }) => {
         <div className="tambo-header">
           <span className="tambo-icon">🤖</span>
           <span className="tambo-title">Tambo AI</span>
-          {charlieThinking && <span className="thinking-indicator">●</span>}
+          {tamboThinking && <span className="thinking-indicator">●</span>}
         </div>
 
         {/* Current Intent */}
