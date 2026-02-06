@@ -95,8 +95,8 @@
 
 /* ==================== DASHBOARD (WINDOW APP) ==================== */
 .dashboard-scene {
-  margin: -15px;
-  height: calc(100% + 30px);
+  margin: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: radial-gradient(1200px 800px at 20% 0%, rgba(79, 70, 229, 0.18), transparent 60%),
@@ -126,16 +126,17 @@
 }
 
 .dashboard-sidebar-toggle {
-  width: 32px;
   height: 32px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: rgba(241, 245, 249, 0.9);
-  font-size: 16px;
-  display: grid;
-  place-items: center;
-  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
 }
 
@@ -156,6 +157,43 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.dashboard-dropdown {
+  position: relative;
+}
+
+.dashboard-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+}
+
+.dashboard-menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.dashboard-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(241, 245, 249, 0.98);
 }
 
 .nav-btn {
@@ -248,14 +286,17 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px;
+  padding: 10px;
 }
 
 .dashboard-widgets {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
+  grid-auto-flow: dense;
+  gap: 10px;
   max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .dash-widget {
@@ -265,6 +306,11 @@
   border-radius: 10px;
   overflow: hidden;
   transition: all 0.2s ease;
+}
+
+.dash-widget.focused {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 10px 32px rgba(99, 102, 241, 0.16);
 }
 
 .dash-widget:hover {
@@ -280,11 +326,6 @@
   background: rgba(0, 0, 0, 0.15);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   gap: 8px;
-}
-
-.widget-icon {
-  font-size: 16px;
-  line-height: 1;
 }
 
 .widget-label {

@@ -324,6 +324,10 @@ body {
   padding: 15px;
 }
 
+.window-content.window-content--flush {
+  padding: 0;
+}
+
 .app-placeholder {
   display: flex;
   align-items: center;
