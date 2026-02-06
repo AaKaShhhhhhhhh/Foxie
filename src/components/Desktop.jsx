@@ -18,6 +18,10 @@ import ProductivityDashboard from './ProductivityDashboard';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
 import { isFoxieWakePhrase, onFoxieWake } from '../utils/foxieWake';
 
+const APP_WINDOW_CONFIG = {
+  Dashboard: { noPadding: true },
+};
+
 const Desktop = () => {
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [windows, setWindows] = useState([]);
@@ -103,7 +107,8 @@ const Desktop = () => {
       const y = safeTop + (cascadeOffset % Math.max(1, availableHeight));
 
       const position = { x, y };
-      return [...prev, { id, name: appName, isMinimized: false, position }];
+      const config = APP_WINDOW_CONFIG[appName] ?? {};
+      return [...prev, { id, name: appName, isMinimized: false, position, noPadding: Boolean(config.noPadding) }];
     });
 
     setActiveWindowId(id);
@@ -284,7 +289,7 @@ const Desktop = () => {
               id={window.id}
               title={window.name}
               position={window.position}
-              noPadding={window.name === 'Dashboard'}
+              noPadding={window.noPadding}
               onClose={() => closeWindow(window.id)}
               onMinimize={() => toggleMinimize(window.id)}
               onFocus={() => bringToFront(window.id)}
