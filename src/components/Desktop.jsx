@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Taskbar from './Taskbar';
 import StartMenu from './StartMenu';
 import Window from './Window';
@@ -8,11 +8,14 @@ import FoxieAvatar from './FoxieAvatar';
 import Notifications from './Notifications';
 import { AdaptiveUIProvider } from './AdaptiveUIProvider';
 import TamboUI from './TamboUI';
+import AssistantChat from './AssistantChat';
+import DesktopWidgets from './DesktopWidgets';
 import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
 import ProductivityDashboard from './ProductivityDashboard';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
+import { isFoxieWakePhrase, onFoxieWake } from '../utils/foxieWake';
 
 const Desktop = () => {
   const [startMenuOpen, setStartMenuOpen] = useState(false);
@@ -28,12 +31,11 @@ const Desktop = () => {
   const [foxieAwake, setFoxieAwake] = useState(false);
   const [foxieListening, setFoxieListening] = useState(false);
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
-  const [foxieMood, setFoxieMood] = useState('happy');
+  const foxieSleepTimerRef = useRef(null);
 
   // Life simulation
   const {
     needs,
-    lifeStage,
     feed,
     giveWater,
     rest,
@@ -41,6 +43,8 @@ const Desktop = () => {
     praise,
     getMood,
   } = useLifeSimulation();
+
+  const foxieMood = useMemo(() => getMood(), [getMood]);
 
   // Track user activity
   useEffect(() => {
@@ -67,51 +71,54 @@ const Desktop = () => {
   }, [inactivityTimer]);
 
   // Open an app window
-  const openWindow = (appName) => {
-    const newWindow = {
-      id: Date.now(),
-      name: appName,
-      isMinimized: false,
-      position: { x: 100 + windows.length * 20, y: 100 + windows.length * 20 },
-    };
-    setWindows([...windows, newWindow]);
-    setActiveWindowId(newWindow.id);
+  const openWindow = useCallback((appName) => {
+    const id = Date.now();
+
+    setWindows((prev) => {
+      const position = {
+        x: 100 + prev.length * 20,
+        y: 100 + prev.length * 20,
+      };
+      return [...prev, { id, name: appName, isMinimized: false, position }];
+    });
+
+    setActiveWindowId(id);
     setStartMenuOpen(false);
     setLastAppOpened(appName);
     setFocusTime(0); // Reset focus time when opening new app
-  };
+  }, []);
 
   // Close a window
-  const closeWindow = (id) => {
-    setWindows(windows.filter((w) => w.id !== id));
-  };
+  const closeWindow = useCallback((id) => {
+    setWindows((prev) => prev.filter((w) => w.id !== id));
+  }, []);
 
   // Toggle window minimization
-  const toggleMinimize = (id) => {
-    setWindows(
-      windows.map((w) =>
-        w.id === id ? { ...w, isMinimized: !w.isMinimized } : w
-      )
+  const toggleMinimize = useCallback((id) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, isMinimized: !w.isMinimized } : w))
     );
-  };
+  }, []);
 
   // Bring window to front
-  const bringToFront = (id) => {
+  const bringToFront = useCallback((id) => {
     setActiveWindowId(id);
-  };
+  }, []);
 
   // Add notification
-  const addNotification = (message, duration = 3000) => {
+  const addNotification = useCallback((message, duration = 3000) => {
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, message }]);
     setTimeout(() => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, duration);
-  };
+  }, []);
 
   // Render app based on name
   const renderAppContent = (appName) => {
     switch (appName) {
+      case 'Foxie Assistant':
+        return <AssistantChat />;
       case 'Notes':
         return <Notes />;
       case 'Pomodoro':
@@ -136,16 +143,40 @@ const Desktop = () => {
     return () => clearInterval(interval);
   }, [userActive, windows.length]);
 
+  const scheduleFoxieSleep = useCallback(() => {
+    if (foxieSleepTimerRef.current) {
+      clearTimeout(foxieSleepTimerRef.current);
+    }
+
+    foxieSleepTimerRef.current = setTimeout(() => {
+      setFoxieListening(false);
+      setFoxieAwake(false);
+    }, 30000);
+  }, []);
+
   // Handle voice wake
   const handleFoxieWake = useCallback(() => {
     setFoxieAwake(true);
     setFoxieListening(true);
-    addNotification('🦊 Foxie is listening!', 2000);
-  }, []);
+    setLastFoxieCommand({ type: 'WAKE' });
+    addNotification('Foxie is listening!', 2000);
+    scheduleFoxieSleep();
+  }, [addNotification, scheduleFoxieSleep]);
+
+  // Handle typed wake phrase
+  const handleTaskbarCommandSubmit = useCallback(
+    (text) => {
+      if (!isFoxieWakePhrase(text)) return;
+      handleFoxieWake();
+      openWindow('Foxie Assistant');
+    },
+    [handleFoxieWake, openWindow]
+  );
 
   // Handle voice command
-  const handleFoxieCommand = useCallback((command, transcript) => {
+  const handleFoxieCommand = useCallback((command) => {
     setLastFoxieCommand(command);
+    scheduleFoxieSleep();
     
     // Execute life simulation commands
     switch (command.type) {
@@ -173,12 +204,18 @@ const Desktop = () => {
       default:
         addNotification(command.text, 2000);
     }
-  }, [feed, giveWater, rest, play, praise]);
+  }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep]);
 
-  // Update mood based on needs
   useEffect(() => {
-    setFoxieMood(getMood());
-  }, [needs, getMood]);
+    return () => {
+      if (foxieSleepTimerRef.current) {
+        clearTimeout(foxieSleepTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Wake Foxie from anywhere (typed "hey foxie", etc.)
+  useEffect(() => onFoxieWake(() => handleFoxieWake()), [handleFoxieWake]);
 
   // App state for Tambo analysis
   const appState = useMemo(
@@ -197,6 +234,12 @@ const Desktop = () => {
     <div className="desktop">
       {/* Desktop Background */}
       <div className="desktop-background"></div>
+
+      <DesktopWidgets
+        focusTime={focusTime}
+        windowsOpen={windows.length}
+        onOpenAssistant={() => openWindow('Foxie Assistant')}
+      />
 
       {/* Windows */}
       <div className="windows-container">
@@ -225,15 +268,17 @@ const Desktop = () => {
         onSpeak={(message) => addNotification(message, 2000)}
       />
 
-      {/* Foxie Avatar - Reactive */}
-      <FoxieAvatar
-        mood={foxieMood}
-        isAwake={foxieAwake}
-        isListening={foxieListening}
-        lastCommand={lastFoxieCommand}
-        needs={needs}
-        userActivity={userActive ? 'active' : 'idle'}
-      />
+      {/* Foxie Avatar - only visible once awakened */}
+      {foxieAwake && (
+        <FoxieAvatar
+          mood={foxieMood}
+          isAwake={foxieAwake}
+          isListening={foxieListening}
+          lastCommand={lastFoxieCommand}
+          needs={needs}
+          userActivity={userActive ? 'active' : 'idle'}
+        />
+      )}
 
       {/* Voice Control UI */}
       <FoxieVoiceUI
@@ -260,6 +305,11 @@ const Desktop = () => {
       <Taskbar
         startMenuOpen={startMenuOpen}
         onStartClick={() => setStartMenuOpen(!startMenuOpen)}
+        onCommandSubmit={handleTaskbarCommandSubmit}
+        windows={windows}
+        activeWindowId={activeWindowId}
+        onActivateWindow={bringToFront}
+        onToggleMinimize={toggleMinimize}
         windowCount={windows.length}
         minimizedCount={windows.filter((w) => w.isMinimized).length}
       />
