@@ -1,8 +1,10 @@
-import FoxieLauncher from './components/FoxieLauncher';
+import Desktop from './components/Desktop';
+import './styles/main.css';
 import './styles/sleek-ui.css';
+import './styles/desktop-shell.css';
 
 function App() {
-  return <FoxieLauncher />;
+  return <Desktop />;
 }
 
 export default App;

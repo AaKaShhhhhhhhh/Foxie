@@ -2,6 +2,7 @@ import React from 'react';
 
 const StartMenu = ({ onOpenApp, onClose }) => {
   const apps = [
+    { name: 'Foxie Assistant', icon: 'F' },
     { name: 'Dashboard', icon: '📊' },
     { name: 'Notes', icon: '📝' },
     { name: 'Pomodoro', icon: '🍅' },
