@@ -290,9 +290,18 @@ const FoxieVoiceUI = ({
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100 }}
+      style={{ pointerEvents: 'none' }} /* Pass through clicks to desktop */
     >
-      {/* Main Voice Control Card */}
-      <div className={`voice-control-card ${isAwake ? 'awake' : ''} ${isListening ? 'listening' : ''}`}>
+      {/* Main Voice Control Card - Only visible when awake/active */}
+      <div 
+        className={`voice-control-card ${isAwake ? 'awake' : ''} ${isListening ? 'listening' : ''}`}
+        style={{ 
+          opacity: (isAwake || isListening) ? 1 : 0,
+          pointerEvents: (isAwake || isListening) ? 'auto' : 'none',
+          transform: (isAwake || isListening) ? 'scale(1)' : 'scale(0.9)',
+          transition: 'all 0.3s ease'
+        }}
+      >
         {/* Header */}
         <div className="voice-header">
           <div className="voice-title">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Taskbar from './Taskbar';
+import ErrorBoundary from './ErrorBoundary';
 import StartMenu from './StartMenu';
 import Window from './Window';
 import PetAssistantUltimate from './PetAssistantUltimate';
@@ -193,10 +194,9 @@ const Desktop = () => {
   const handleTaskbarCommandSubmit = useCallback(
     (text) => {
       if (!isFoxieWakePhrase(text)) return;
-      handleFoxieWake();
-      openWindow('Foxie Assistant');
+      handleFoxieWake(); // Just wake the avatar
     },
-    [handleFoxieWake, openWindow]
+    [handleFoxieWake]
   );
 
   // Handle voice command
@@ -290,34 +290,30 @@ const Desktop = () => {
           ))}
       </div>
 
-      {/* Ultimate Pet Assistant with Full Autonomy */}
-      <PetAssistantUltimate
-        userActive={userActive}
-        windowsOpen={windows.length}
-        onSpeak={(message) => addNotification(message, 2000)}
-      />
-
       {/* Foxie Avatar - only visible once awakened */}
       {foxieAwake && (
-        <FoxieAvatar
-          mood={foxieMood}
-          isAwake={foxieAwake}
-          isListening={foxieListening}
-          lastCommand={lastFoxieCommand}
-          needs={needs}
-          userActivity={userActive ? 'active' : 'idle'}
-        />
+        <ErrorBoundary fallback={null}>
+          <FoxieAvatar
+            mood={foxieMood}
+            isAwake={foxieAwake}
+            isListening={foxieListening}
+            lastCommand={lastFoxieCommand}
+            needs={needs}
+            userActivity={userActive ? 'active' : 'idle'}
+          />
+        </ErrorBoundary>
       )}
 
-      {/* Voice Control UI */}
+      {/* Voice Control - Logic Only (Invisible when sleeping) */}
       <FoxieVoiceUI
         onWake={handleFoxieWake}
         onCommand={handleFoxieCommand}
         foxieState={foxieAwake ? 'awake' : 'sleeping'}
+        visible={foxieAwake} /* Only show UI card when awake */
       />
 
-      {/* Tambo AI Suggestions */}
-      <TamboUI />
+      {/* Tambo AI Suggestions - Hidden for cleaner UI unless requested */}
+      {/* <TamboUI /> */}
 
       {/* Start Menu */}
       {startMenuOpen && (
