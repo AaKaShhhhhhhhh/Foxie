@@ -1,33 +1,50 @@
+/* Main Desktop Container */
 .desktop {
-  background: radial-gradient(1200px 800px at 20% 0%, rgba(79, 70, 229, 0.18), transparent 60%),
-    radial-gradient(900px 600px at 90% 20%, rgba(16, 185, 129, 0.12), transparent 55%),
-    linear-gradient(180deg, #0b1220 0%, #070b14 100%);
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1a 100%);
+  color: #e0e0e0;
 }
 
+/* Desktop Background Area (Wallpaper & Base) */
 .desktop-background {
-  background: transparent;
-  height: calc(100% - 56px);
-  /* Keep desktop content (icons/text) from sitting underneath the widget columns */
-  padding-top: 24px;
-  padding-bottom: 24px;
-  padding-left: 368px;
-  padding-right: 348px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: auto; /* Allow interaction with wallpaper for context menus */
 }
 
+/* Windows Container - Layer above background but below overlays */
 .windows-container {
-  height: calc(100% - 56px);
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none; /* Let clicks pass through empty areas to desktop */
+  padding-bottom: 56px; /* Space for taskbar */
 }
 
+/* Allow interaction with windows */
+.windows-container > * {
+  pointer-events: auto;
+}
+
+/* Desktop HUD / Widgets - Positioned on desktop layer */
 .desktop > .desktop-hud,
 .desktop-hud {
-  position: fixed !important;
-  top: 24px !important;
-  right: 24px !important;
+  position: absolute !important;
+  top: 24px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  z-index: 1500 !important;
-  width: min(300px, calc(100vw - 48px));
+  z-index: 10; /* Low z-index so windows go over them */
+  width: 300px;
+  max-width: calc(100vw - 48px);
   pointer-events: none;
 }
 
@@ -38,14 +55,15 @@
 
 .desktop > .desktop-side-widgets,
 .desktop-side-widgets {
-  position: fixed !important;
-  top: 24px !important;
-  left: 24px !important;
+  position: absolute !important;
+  top: 24px;
+  left: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  z-index: 1500 !important;
-  width: min(320px, calc(100vw - 48px));
+  z-index: 10; /* Low z-index so windows go over them */
+  width: 300px;
+  max-width: calc(100vw - 48px);
   pointer-events: none;
 }
 
@@ -54,19 +72,18 @@
   pointer-events: auto;
 }
 
-.desktop-widgets {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
+/* Notifications - Always on top of everything */
+.desktop-hud .notifications-container {
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
+  z-index: 9999 !important;
+  width: auto;
+  pointer-events: none;
 }
 
-.desktop-hud .notifications-container {
-  position: static !important;
-  top: auto !important;
-  right: auto !important;
-  z-index: auto;
-  max-width: 100%;
+.desktop-hud .notifications-container > * {
+  pointer-events: auto;
 }
 
 .desktop-hud .widget-card,
@@ -848,4 +865,171 @@
   .windows-container {
     padding: 60px 12px 12px 12px !important;
   }
+}
+/* ==================== SLEEK WINDOW STYLES (Windows 11 Inspired) ==================== */
+.window {
+  background: rgba(32, 32, 32, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.2), 
+    0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  min-width: 400px;
+  min-height: 300px;
+  z-index: 100; /* Base z-index */
+  overflow: hidden;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.2s ease;
+  color: #fff;
+}
+
+.window.active {
+  background: rgba(40, 40, 40, 0.9) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.15), 
+    0 30px 70px rgba(0, 0, 0, 0.6) !important;
+  z-index: 200 !important; /* Ensure active window is above others */
+  transform: scale(1.002);
+}
+
+.window-titlebar {
+  background: transparent !important; /* Seamless header */
+  padding: 12px 16px !important;
+  height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.window-title {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.01em;
+}
+
+.window-controls {
+  gap: 8px !important;
+}
+
+.window-button {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.1s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.window-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.window-button.close:hover {
+  background: #c42b1c !important; /* Windows 11 close red */
+  color: #fff !important;
+}
+
+.window-content {
+  background: transparent !important; /* Let mica show through */
+}
+
+/* Fix Scrollbars in Windows */
+.window-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.window-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.window-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.window-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ensure taskbar is consistent */
+.taskbar {
+  background: rgba(20, 20, 30, 0.85) !important;
+  backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  height: 52px !important;
+  z-index: 5000 !important; /* Topmost */
+}
+
+.start-button {
+  background: transparent !important;
+  transition: background 0.2s;
+}
+
+.start-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.taskbar-app-button {
+  border-radius: 4px !important; /* Windows 11 uses rounded squares for taskbar items, or pills if active? Let's use rounded */
+  transition: all 0.2s ease;
+}
+
+.taskbar-app-button.active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 2px solid #60cdff; /* Accent line */
+  border-radius: 4px !important;
+}
+
+/* Sleek Start Menu */
+.start-menu-overlay {
+  background: rgba(0, 0, 0, 0.2) !important; /* Subtle dim */
+  backdrop-filter: blur(2px);
+  padding-bottom: 60px; /* Space above taskbar */
+  padding-left: 12px;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+}
+
+.start-menu {
+  background: rgba(30, 30, 35, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 12px;
+  animation: slideUp 0.05s ease-out !important; /* Faster animation */
+  width: 320px !important;
+}
+
+.start-menu-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 16px 20px !important;
+}
+
+.start-menu-header h2 {
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.app-launcher {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  transition: background 0.1s ease !important;
+}
+
+.app-launcher:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  transform: none !important;
 }
