@@ -3,172 +3,251 @@
  * Shows daily stats, streaks, achievements, and progress
  */
 
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useBehaviorTracking } from '../hooks/useBehaviorTracking';
+import { useAdaptiveUI } from './AdaptiveUIProvider';
 
-const ProductivityDashboard = () => {
-  const { getDailyStats, sessions } = useBehaviorTracking({});
+const QUICK_NOTE_STORAGE_KEY = 'foxie.widgets.quickNote.v1';
+
+function safeReadLocalStorage(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeWriteLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore environments where localStorage is unavailable (or full).
+  }
+}
+
+function formatFocusMinutes(seconds) {
+  return `${Math.floor(Math.max(0, seconds) / 60)}m`;
+}
+
+const ProductivityDashboard = ({ onOpenApp }) => {
+  const { adaptiveUI, appState } = useAdaptiveUI();
+  const { getDailyStats } = useBehaviorTracking({});
   const stats = useMemo(() => getDailyStats(), [getDailyStats]);
 
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
+  const [now, setNow] = useState(() => new Date());
+  const [quickNote, setQuickNote] = useState(() => safeReadLocalStorage(QUICK_NOTE_STORAGE_KEY) ?? '');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeWidget, setActiveWidget] = useState('activity');
 
-  const StatCard = ({ icon, label, value, color = '#667eea' }) => (
-    <motion.div
-      className="stat-card"
-      whileHover={{ scale: 1.05 }}
-      transition={{ type: 'spring', stiffness: 300 }}
-    >
-      <div className="stat-card-icon" style={{ color }}>
-        {icon}
-      </div>
-      <div className="stat-card-label">{label}</div>
-      <div className="stat-card-value" style={{ color }}>
-        {value}
-      </div>
-    </motion.div>
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 15_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    safeWriteLocalStorage(QUICK_NOTE_STORAGE_KEY, quickNote);
+  }, [quickNote]);
+
+  const handleClearNote = useCallback(() => {
+    setQuickNote('');
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev);
+  }, []);
+
+  const handleOpen = useCallback(
+    (appName) => {
+      if (!onOpenApp) return;
+      onOpenApp(appName);
+    },
+    [onOpenApp]
   );
+
+  const handleStart = useCallback(() => {
+    if (!onOpenApp) return;
+
+    const component = adaptiveUI?.component;
+    const componentToAppName = {
+      Pomodoro: 'Pomodoro',
+      Notes: 'Notes',
+      TaskManager: 'Task Manager',
+    };
+
+    const fallbackApp = 'Pomodoro';
+    onOpenApp(componentToAppName[component] || fallbackApp);
+  }, [adaptiveUI?.component, onOpenApp]);
+
+  const timeText = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const dateText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
     <motion.div
-      className="productivity-dashboard"
-      initial={{ opacity: 0, y: 20 }}
+      className="dashboard-scene"
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.25 }}
     >
-      {/* Header */}
-      <div className="dashboard-header">
-        <h2>📊 Today's Progress</h2>
-        <span className="date-display">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'short',
-            day: 'numeric',
-          })}
-        </span>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <StatCard
-          icon="⏱️"
-          label="Active Time"
-          value={formatTime(stats.totalActiveTime)}
-          color="#4CAF50"
-        />
-        <StatCard
-          icon="🎯"
-          label="Focus Sessions"
-          value={stats.focusSessions}
-          color="#2196F3"
-        />
-        <StatCard
-          icon="✓"
-          label="Tasks Done"
-          value={stats.taskCompleted}
-          color="#FF9800"
-        />
-        <StatCard
-          icon="☕"
-          label="Breaks"
-          value={stats.breaksTaken}
-          color="#E91E63"
-        />
-      </div>
-
-      {/* Goal Progress */}
-      <div className="goal-section">
-        <h3>🎯 Daily Goals</h3>
-        <div className="goal-item">
-          <div className="goal-label">
-            <span>Focus Sessions (Goal: 4)</span>
-            <span className="goal-progress">{stats.focusSessions}/4</span>
-          </div>
-          <div className="goal-bar">
-            <motion.div
-              className="goal-fill"
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min(100, (stats.focusSessions / 4) * 100)}%` }}
-              transition={{ duration: 0.8 }}
-            />
-          </div>
+      <div className="dashboard-topbar">
+        <div className="dashboard-brand-section">
+          <button className="dashboard-sidebar-toggle" type="button" onClick={toggleSidebar}>
+            ☰
+          </button>
+          <div className="dashboard-brand">Foxie</div>
         </div>
-
-        <div className="goal-item">
-          <div className="goal-label">
-            <span>Active Time (Goal: 4h)</span>
-            <span className="goal-progress">
-              {formatTime(stats.totalActiveTime)}/4h
-            </span>
-          </div>
-          <div className="goal-bar">
-            <motion.div
-              className="goal-fill"
-              initial={{ width: 0 }}
-              animate={{
-                width: `${Math.min(100, (stats.totalActiveTime / 14400) * 100)}%`,
-              }}
-              transition={{ duration: 0.8 }}
-            />
-          </div>
-        </div>
-
-        <div className="goal-item">
-          <div className="goal-label">
-            <span>Tasks Completed (Goal: 5)</span>
-            <span className="goal-progress">{stats.taskCompleted}/5</span>
-          </div>
-          <div className="goal-bar">
-            <motion.div
-              className="goal-fill"
-              initial={{ width: 0 }}
-              animate={{
-                width: `${Math.min(100, (stats.taskCompleted / 5) * 100)}%`,
-              }}
-              transition={{ duration: 0.8 }}
-            />
-          </div>
+        <div className="dashboard-nav">
+          <button className="nav-btn nav-btn-primary" type="button" onClick={() => handleOpen('Foxie Assistant')}>
+            Assistant
+          </button>
+          <button className="nav-btn" type="button" onClick={() => handleOpen('Task Manager')}>
+            Tasks
+          </button>
+          <button className="nav-btn" type="button" onClick={() => handleOpen('Notes')}>
+            Notes
+          </button>
+          <button className="nav-btn" type="button" onClick={() => handleOpen('Pomodoro')}>
+            Timer
+          </button>
+          <button className="nav-btn nav-btn-active" type="button">
+            Dashboard
+          </button>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="quick-stats">
-        <div className="quick-stat">
-          <span className="quick-stat-label">Avg Session</span>
-          <span className="quick-stat-value">
-            {formatTime(stats.averageSessionLength)}
-          </span>
-        </div>
-        <div className="quick-stat">
-          <span className="quick-stat-label">Best Time</span>
-          <span className="quick-stat-value">Morning</span>
-        </div>
-        <div className="quick-stat">
-          <span className="quick-stat-label">Streak</span>
-          <span className="quick-stat-value">🔥 5 days</span>
+      <div className="dashboard-layout">
+        {/* Collapsible Sidebar */}
+        <motion.div 
+          className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}
+          initial={false}
+          animate={{ width: sidebarOpen ? 260 : 0 }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+        >
+          {sidebarOpen && (
+            <div className="sidebar-content">
+              <div className="sidebar-section">
+                <button 
+                  className={`sidebar-tab ${activeWidget === 'activity' ? 'active' : ''}`}
+                  onClick={() => setActiveWidget('activity')}
+                >
+                  📊 Activity
+                </button>
+                <button 
+                  className={`sidebar-tab ${activeWidget === 'notes' ? 'active' : ''}`}
+                  onClick={() => setActiveWidget('notes')}
+                >
+                  📝 Notes
+                </button>
+                <button 
+                  className={`sidebar-tab ${activeWidget === 'timer' ? 'active' : ''}`}
+                  onClick={() => setActiveWidget('timer')}
+                >
+                  ⏱️ Timer
+                </button>
+                <button 
+                  className={`sidebar-tab ${activeWidget === 'tasks' ? 'active' : ''}`}
+                  onClick={() => setActiveWidget('tasks')}
+                >
+                  ✅ Tasks
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Main Content */}
+        <div className="dashboard-main">
+          <div className="dashboard-widgets">
+            {/* Time Widget */}
+            <div className="dash-widget time-widget">
+              <div className="widget-header">
+                <span className="widget-icon">🕐</span>
+                <span className="widget-label">Time</span>
+              </div>
+              <div className="widget-content">
+                <div className="time-display">{timeText}</div>
+                <div className="date-display">{dateText}</div>
+              </div>
+            </div>
+
+            {/* Activity Widget */}
+            <div className="dash-widget activity-widget">
+              <div className="widget-header">
+                <span className="widget-icon">📊</span>
+                <span className="widget-label">Activity</span>
+              </div>
+              <div className="widget-content">
+                <div className="activity-metrics">
+                  <div className="activity-item">
+                    <span className="activity-label">Focus</span>
+                    <span className="activity-value">{formatFocusMinutes(appState?.focusTime || 0)}</span>
+                  </div>
+                  <div className="activity-item">
+                    <span className="activity-label">Windows</span>
+                    <span className="activity-value">{appState?.windowsOpen ?? 0}</span>
+                  </div>
+                </div>
+                <button className="action-btn" onClick={handleStart}>
+                  Start Session
+                </button>
+              </div>
+            </div>
+
+            {/* Stats Widget */}
+            <div className="dash-widget stats-widget">
+              <div className="widget-header">
+                <span className="widget-icon">📈</span>
+                <span className="widget-label">Today</span>
+              </div>
+              <div className="widget-content">
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <div className="stat-label">Active</div>
+                    <div className="stat-value">{formatFocusMinutes(stats.totalActiveTime || 0)}</div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-label">Sessions</div>
+                    <div className="stat-value">{stats.focusSessions ?? 0}</div>
+                  </div>
+                  <div className="stat-item">
+                    <div className="stat-label">Tasks</div>
+                    <div className="stat-value">{stats.taskCompleted ?? 0}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Note Widget */}
+            <div className="dash-widget note-widget">
+              <div className="widget-header">
+                <span className="widget-icon">📝</span>
+                <span className="widget-label">Quick Note</span>
+                <button className="widget-action-btn" onClick={handleClearNote}>Clear</button>
+              </div>
+              <div className="widget-content">
+                <textarea
+                  className="note-input"
+                  value={quickNote}
+                  onChange={(e) => setQuickNote(e.target.value)}
+                  placeholder="Jot down a quick note..."
+                />
+              </div>
+            </div>
+
+            {/* Tambo Insight Widget */}
+            <div className="dash-widget insight-widget">
+              <div className="widget-header">
+                <span className="widget-icon">💡</span>
+                <span className="widget-label">Tambo Insight</span>
+              </div>
+              <div className="widget-content">
+                <div className="insight-text">{adaptiveUI?.suggestedAction || 'Ready to work!'}</div>
+                <div className="insight-meta">{adaptiveUI?.intent || 'system.desktop'}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Motivational Message */}
-      <motion.div
-        className="motivation-message"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        {stats.focusSessions >= 4 ? (
-          <p>🎉 Excellent progress today! You're crushing your goals!</p>
-        ) : stats.taskCompleted >= 3 ? (
-          <p>💪 Great work! Keep the momentum going!</p>
-        ) : (
-          <p>🚀 You\'re doing great! One more session to go!</p>
-        )}
-      </motion.div>
     </motion.div>
   );
 };

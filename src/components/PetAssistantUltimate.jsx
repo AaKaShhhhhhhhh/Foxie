@@ -570,7 +570,7 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
             animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
           >
-            👋 Show your hand or just watch!
+            
           </motion.div>
         )}
       </AnimatePresence>

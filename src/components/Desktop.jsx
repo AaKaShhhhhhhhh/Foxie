@@ -76,10 +76,33 @@ const Desktop = () => {
     const id = Date.now();
 
     setWindows((prev) => {
-      const position = {
-        x: 100 + prev.length * 20,
-        y: 100 + prev.length * 20,
-      };
+      const widgetInsetTop = 24;
+      const widgetInsetSide = 24;
+      const leftWidgetsWidth = 320;
+      const rightWidgetsWidth = 300;
+      const taskbarHeight = 56;
+      const windowMinWidth = 400;
+      const windowMinHeight = 300;
+
+      const safeLeft = widgetInsetSide + leftWidgetsWidth + widgetInsetSide;
+      const safeRight = widgetInsetSide + rightWidgetsWidth + widgetInsetSide;
+      const safeTop = widgetInsetTop;
+      const safeBottom = taskbarHeight + 24;
+
+      const availableWidth = Math.max(
+        0,
+        window.innerWidth - safeLeft - safeRight - windowMinWidth
+      );
+      const availableHeight = Math.max(
+        0,
+        window.innerHeight - safeTop - safeBottom - windowMinHeight
+      );
+
+      const cascadeOffset = 24 * prev.length;
+      const x = safeLeft + (cascadeOffset % Math.max(1, availableWidth));
+      const y = safeTop + (cascadeOffset % Math.max(1, availableHeight));
+
+      const position = { x, y };
       return [...prev, { id, name: appName, isMinimized: false, position }];
     });
 
@@ -127,7 +150,7 @@ const Desktop = () => {
       case 'Task Manager':
         return <Tasks />;
       case 'Dashboard':
-        return <ProductivityDashboard />;
+        return <ProductivityDashboard onOpenApp={openWindow} />;
       default:
         return <div className="app-placeholder">App: {appName}</div>;
     }

@@ -352,7 +352,7 @@ const PetAssistantAdvanced = ({ userActive, windowsOpen, onSpeak }) => {
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
           >
-            👋 Show your hand to play!
+            
           </motion.div>
         )}
       </AnimatePresence>
