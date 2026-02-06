@@ -24,6 +24,17 @@
   width: min(300px, calc(100vw - 36px));
 }
 
+.desktop-side-widgets {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+  width: min(320px, calc(100vw - 36px));
+}
+
 .desktop-widgets {
   display: flex;
   flex-direction: column;
@@ -56,12 +67,43 @@
   color: rgba(226, 232, 240, 0.82);
 }
 
+.widget-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.widget-header-meta {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(148, 163, 184, 0.92);
+}
+
+.widget-header-action {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(241, 245, 249, 0.92);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 10px;
+}
+
+.widget-header-action:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
 .widget-value {
   margin-top: 8px;
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: rgba(241, 245, 249, 0.96);
+}
+
+.widget-timer-value {
+  font-size: 24px;
 }
 
 .widget-subtitle {
@@ -113,6 +155,75 @@
 
 .widget-action:hover {
   border-color: rgba(99, 102, 241, 0.55);
+}
+
+.widget-shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.widget-shortcut {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(241, 245, 249, 0.92);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+.widget-shortcut:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.widget-note-textarea {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(241, 245, 249, 0.92);
+  font-size: 12px;
+  font-weight: 600;
+  resize: vertical;
+}
+
+.widget-note-textarea::placeholder {
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.widget-button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.widget-button {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(241, 245, 249, 0.95);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.widget-button-primary {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.16);
+}
+
+.widget-button-primary:hover {
+  border-color: rgba(99, 102, 241, 0.55);
+}
+
+.widget-button-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .taskbar {
@@ -202,6 +313,10 @@
   }
 
   .desktop-hud {
+    width: min(220px, calc(100vw - 36px));
+  }
+
+  .desktop-side-widgets {
     width: min(220px, calc(100vw - 36px));
   }
 }

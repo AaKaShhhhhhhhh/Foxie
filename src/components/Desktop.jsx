@@ -10,6 +10,7 @@ import { AdaptiveUIProvider } from './AdaptiveUIProvider';
 import TamboUI from './TamboUI';
 import AssistantChat from './AssistantChat';
 import DesktopWidgets from './DesktopWidgets';
+import DesktopSideWidgets from './DesktopSideWidgets';
 import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
@@ -234,6 +235,11 @@ const Desktop = () => {
     <div className="desktop">
       {/* Desktop Background */}
       <div className="desktop-background"></div>
+
+      <DesktopSideWidgets
+        onOpenApp={openWindow}
+        onNotify={(message) => addNotification(message, 2500)}
+      />
 
       <div className="desktop-hud">
         <DesktopWidgets
