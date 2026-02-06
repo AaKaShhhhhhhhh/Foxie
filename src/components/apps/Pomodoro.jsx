@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
-const Pomodoro = ({ onNotify }) => {
+const Pomodoro = ({ onNotify, onTimerUpdate }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState('work'); // 'work' or 'break'
+
+  // Sync state with parent
+  useEffect(() => {
+    if (onTimerUpdate) {
+      onTimerUpdate({ isRunning, timeLeft, sessionType });
+    }
+  }, [isRunning, timeLeft, sessionType, onTimerUpdate]);
 
   useEffect(() => {
     if (!isRunning) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
+        let newTime = prev - 1;
         if (prev <= 1) {
           setIsRunning(false);
           const nextType = sessionType === 'work' ? 'break' : 'work';
@@ -19,9 +27,9 @@ const Pomodoro = ({ onNotify }) => {
           onNotify(
             `${sessionType.toUpperCase()} session complete! Time for ${nextType}!`
           );
-          return nextTime;
+          newTime = nextTime;
         }
-        return prev - 1;
+        return newTime;
       });
     }, 1000);
 

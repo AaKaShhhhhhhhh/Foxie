@@ -35,7 +35,11 @@ const Desktop = () => {
   // Foxie state
   const [foxieAwake, setFoxieAwake] = useState(false);
   const [foxieListening, setFoxieListening] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false); // New state for voice toggle
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
+  const [pomodoroState, setPomodoroState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
   const foxieSleepTimerRef = useRef(null);
 
   // Life simulation
@@ -149,7 +153,7 @@ const Desktop = () => {
       case 'Notes':
         return <Notes />;
       case 'Pomodoro':
-        return <Pomodoro onNotify={addNotification} />;
+        return <Pomodoro onNotify={addNotification} onTimerUpdate={setPomodoroState} />;
       case 'Task Manager':
         return <Tasks />;
       case 'Dashboard':
@@ -204,6 +208,7 @@ const Desktop = () => {
 
   // Handle voice command
   const handleFoxieCommand = useCallback((command) => {
+    console.log('Desktop: handleFoxieCommand received:', command);
     setLastFoxieCommand(command);
     scheduleFoxieSleep();
 
@@ -229,6 +234,16 @@ const Desktop = () => {
       case 'LOVE':
         praise();
         addNotification('💕 Foxie feels loved!', 2000);
+        break;
+      case 'OPEN_APP':
+        openWindow(command.app);
+        addNotification(command.text, 2000);
+        break;
+      case 'START_TIMER':
+        // Immediate visual feedback + open app
+        setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
+        openWindow('Pomodoro');
+        addNotification('⏱️ Starting Pomodoro Timer!', 2000);
         break;
       default:
         addNotification(command.text, 2000);
@@ -265,7 +280,24 @@ const Desktop = () => {
         <div className="desktop-background"></div>
 
         {/* Top Navigation Bar - Replaces Desktop Widgets */}
-        <DesktopTopBar onOpenApp={openWindow} />
+        <DesktopTopBar 
+          onOpenApp={openWindow} 
+          isVoiceActive={voiceActive}
+          foxieAwake={foxieAwake}
+          voiceTranscript={voiceTranscript}
+          voiceVisualizer={voiceVisualizer}
+          onToggleVoice={() => {
+             const newState = !voiceActive;
+             setVoiceActive(newState);
+             addNotification(newState ? '🎙️ Voice Control Enabled' : '🔇 Voice Control Disabled', 2000);
+             // If disabling, ensure sleeping to stop mic
+             if (!newState) {
+                setFoxieListening(false);
+                setFoxieAwake(false);
+                setVoiceTranscript('');
+             }
+          }}
+        />
 
         {/* Desktop HUD - Only for Notifications now (Invisible container) */}
         <div className="desktop-hud" style={{ pointerEvents: 'none' }}>
@@ -302,11 +334,12 @@ const Desktop = () => {
               isListening={foxieListening}
               lastCommand={lastFoxieCommand}
               needs={needs}
+              pomodoroState={pomodoroState}
               onInteraction={scheduleFoxieSleep}
               onCommand={(cmdText) => {
-                // Dynamically import parser to avoid circular deps if any, or just standard import usage
-                import('../utils/foxieCommands').then(({ parseFoxieCommand }) => {
-                  const command = parseFoxieCommand(cmdText);
+                // Dynamically import parser
+                import('../utils/foxieCommands').then(async ({ parseFoxieCommand }) => {
+                  const command = await parseFoxieCommand(cmdText);
                   handleFoxieCommand(command);
                 });
               }}
@@ -315,12 +348,16 @@ const Desktop = () => {
           </ErrorBoundary>
         )}
 
-        {/* Voice Control - Logic Only (Invisible when sleeping) */}
+        {/* Voice Control - Logic Only (UI moved to Top Bar) */}
         <FoxieVoiceUI
           onWake={handleFoxieWake}
           onCommand={handleFoxieCommand}
+          onTranscriptUpdate={setVoiceTranscript}
+          onVisualizerUpdate={setVoiceVisualizer}
+          onError={(msg) => addNotification(`⚠️ ${msg}`, 4000)}
           foxieState={foxieAwake ? 'awake' : 'sleeping'}
-          visible={foxieAwake} /* Only show UI card when awake */
+          visible={false} /* Hide the floating card */
+          listening={voiceActive} /* Persistent listening if enabled */
         />
 
         {/* Tambo AI Suggestions - Hidden for cleaner UI unless requested */}

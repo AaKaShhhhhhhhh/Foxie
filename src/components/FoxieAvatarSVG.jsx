@@ -117,45 +117,125 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
         </filter>
       </defs>
 
-      {/* Ears */}
-      <motion.g animate={{ rotate: isListening ? [0, -5, 5, 0] : 0 }} transition={{ repeat: isListening ? Infinity : 0, duration: 2 }}>
-        <path d="M 20 80 L 50 10 L 80 70" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M 35 60 L 50 25 L 65 60" fill="#fef3c7" /> {/* Inner Ear Left */}
+      {/* Body Wrapper for Squish/Stretch */}
+      <motion.g
+        animate={mood === 'jumping' ? {
+          scaleY: [1, 0.7, 1.3, 1],
+          y: [0, 5, -30, 0]
+        } : (mood === 'excited' ? {
+          scale: [1, 1.05, 1],
+        } : { scale: 1, y: 0 })}
+        transition={{ 
+          duration: mood === 'jumping' ? 0.6 : 1.5,
+          repeat: mood === 'excited' ? Infinity : 0,
+          ease: "easeInOut"
+        }}
+        style={{ originY: "180px" }}
+      >
+        {/* Tail */}
+        <motion.path 
+          d="M 190 150 Q 230 180 210 120" 
+          fill="url(#foxGradient)" 
+          stroke="#C2410C" 
+          strokeWidth="2" 
+          strokeLinejoin="round"
+          animate={mood === 'happy' || mood === 'excited' || mood === 'playful' ? {
+            rotate: [0, 20, -20, 0],
+            originX: "190px",
+            originY: "150px"
+          } : { rotate: 0 }}
+          transition={{ repeat: Infinity, duration: 0.6 }}
+        />
+
+        {/* Ears */}
+        <motion.g animate={{ rotate: isListening ? [0, -10, 10, 0] : 0 }} transition={{ repeat: isListening ? Infinity : 0, duration: 2 }}>
+          <path d="M 20 80 L 50 10 L 80 70" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M 35 60 L 50 25 L 65 60" fill="#fef3c7" /> {/* Inner Ear Left */}
+        </motion.g>
+        <motion.g animate={{ rotate: isListening ? [0, 10, -10, 0] : 0 }} transition={{ repeat: isListening ? Infinity : 0, duration: 2, delay: 0.1 }}>
+          <path d="M 120 70 L 150 10 L 180 80" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M 135 60 L 150 25 L 165 60" fill="#fef3c7" /> {/* Inner Ear Right */}
+        </motion.g>
+
+        {/* Head Base */}
+        <ellipse cx="100" cy="100" rx="90" ry="75" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" />
+
+        {/* Cheeks/White Fur */}
+        <path d="M 10 100 Q 10 150 50 170 Q 100 180 150 170 Q 190 150 190 100 Q 150 130 100 130 Q 50 130 10 100" fill="#FFF7ED" />
+
+        {/* Eyes with Blinking */}
+        <motion.g 
+          animate={{ 
+            scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
+          }} 
+          transition={{
+            repeat: isAwake ? Infinity : 0,
+            repeatDelay: 4,
+            duration: 0.2
+          }}
+          style={{ transformOrigin: '45px 55px' }}
+        >
+          <LeftEye />
+        </motion.g>
+        <motion.g 
+          animate={{ 
+            scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
+          }} 
+          transition={{
+            repeat: isAwake ? Infinity : 0,
+            repeatDelay: 4,
+            duration: 0.2
+          }}
+          style={{ transformOrigin: '155px 55px' }}
+        >
+          <RightEye />
+        </motion.g>
+
+        {/* Nose */}
+        <circle cx="100" cy="105" r="8" fill="#1f1f1f" />
+        <ellipse cx="100" cy="103" rx="4" ry="2" fill="#525252" opacity="0.5" /> {/* Nose highlighting */}
+
+        {/* Mouth */}
+        <Mouth />
+
+        {/* Blush (conditional) */}
+        {(mood === 'happy' || mood === 'love') && (
+          <>
+            <ellipse cx="30" cy="110" rx="10" ry="6" fill="#fda4af" opacity="0.6" />
+            <ellipse cx="170" cy="110" rx="10" ry="6" fill="#fda4af" opacity="0.6" />
+          </>
+        )}
+
+        {/* Pomodoro Clock Overlay */}
+        {mood === 'pomodoro' && (
+          <g>
+            {/* Clock Face Background (Chest/Belly area) */}
+            <circle cx="100" cy="150" r="25" fill="#fff" stroke="#3d2b1f" strokeWidth="2" />
+            {/* Clock Ticks */}
+            <line x1="100" y1="130" x2="100" y2="135" stroke="#3d2b1f" strokeWidth="2" />
+            <line x1="100" y1="170" x2="100" y2="165" stroke="#3d2b1f" strokeWidth="2" />
+            <line x1="120" y1="150" x2="115" y2="150" stroke="#3d2b1f" strokeWidth="2" />
+            <line x1="80" y1="150" x2="85" y2="150" stroke="#3d2b1f" strokeWidth="2" />
+            {/* Moving Hands */}
+            <motion.line
+              x1="100" y1="150" x2="100" y2="135"
+              stroke="#3d2b1f" strokeWidth="2" strokeLinecap="round"
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+              style={{ originX: "100px", originY: "150px" }}
+            />
+            <motion.line
+              x1="100" y1="150" x2="112" y2="150"
+              stroke="#3d2b1f" strokeWidth="2" strokeLinecap="round"
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 48, ease: "linear" }}
+              style={{ originX: "100px", originY: "150px" }}
+            />
+            {/* Center Dot */}
+            <circle cx="100" cy="150" r="2" fill="#3d2b1f" />
+          </g>
+        )}
       </motion.g>
-      <motion.g animate={{ rotate: isListening ? [0, 5, -5, 0] : 0 }} transition={{ repeat: isListening ? Infinity : 0, duration: 2, delay: 0.1 }}>
-        <path d="M 120 70 L 150 10 L 180 80" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M 135 60 L 150 25 L 165 60" fill="#fef3c7" /> {/* Inner Ear Right */}
-      </motion.g>
-
-      {/* Head Base */}
-      <ellipse cx="100" cy="100" rx="90" ry="75" fill="url(#foxGradient)" stroke="#C2410C" strokeWidth="2" />
-
-      {/* Cheeks/White Fur */}
-      <path d="M 10 100 Q 10 150 50 170 Q 100 180 150 170 Q 190 150 190 100 Q 150 130 100 130 Q 50 130 10 100" fill="#FFF7ED" />
-
-      {/* Eyes */}
-      <motion.g animate={{ scaleY: isAwake ? 1 : 0.1 }} style={{ transformOrigin: '45px 55px' }}>
-        <LeftEye />
-      </motion.g>
-      <motion.g animate={{ scaleY: isAwake ? 1 : 0.1 }} style={{ transformOrigin: '155px 55px' }}>
-        <RightEye />
-      </motion.g>
-
-      {/* Nose */}
-      <circle cx="100" cy="105" r="8" fill="#1f1f1f" />
-      <ellipse cx="100" cy="103" rx="4" ry="2" fill="#525252" opacity="0.5" /> {/* Nose highlighting */}
-
-      {/* Mouth */}
-      <Mouth />
-
-      {/* Blush (conditional) */}
-      {(mood === 'happy' || mood === 'love') && (
-        <>
-          <ellipse cx="30" cy="110" rx="10" ry="6" fill="#fda4af" opacity="0.6" />
-          <ellipse cx="170" cy="110" rx="10" ry="6" fill="#fda4af" opacity="0.6" />
-        </>
-      )}
-
 
     </svg>
   );

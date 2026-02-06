@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DesktopTopBar = ({ onOpenApp }) => {
+const DesktopTopBar = (props) => {
+  const { onOpenApp } = props;
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -46,11 +47,63 @@ const DesktopTopBar = ({ onOpenApp }) => {
         </nav>
       </div>
 
+      <div className="top-bar-center">
+        <AnimatePresence mode="wait">
+          {props.foxieAwake && (
+            <motion.div 
+              className="voice-status-indicator"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <div className="top-visualizer">
+                {props.voiceVisualizer?.map((height, i) => (
+                  <div 
+                    key={i} 
+                    className="top-viz-bar" 
+                    style={{ height: `${Math.max(2, height * 16)}px` }} 
+                  />
+                ))}
+              </div>
+              <span className="voice-transcript-top">
+                {props.voiceTranscript || "Listening..."}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div className="top-bar-right">
+        {/* Voice Toggle */}
+        <button 
+          className={`voice-toggle-btn ${props.isVoiceActive ? 'active' : ''}`}
+          onClick={props.onToggleVoice}
+          title={props.isVoiceActive ? "Disable Voice Control" : "Enable Voice Control"}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            cursor: 'pointer', 
+            fontSize: '1.2rem',
+            padding: '0 12px',
+            opacity: props.isVoiceActive ? 1 : 0.6,
+            transition: 'all 0.2s ease',
+            position: 'relative'
+          }}
+        >
+          {props.isVoiceActive ? '🎙️' : '🔇'}
+          {props.isVoiceActive && !props.foxieAwake && (
+             <motion.div 
+               className="mic-pulse-ring" 
+               animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+               transition={{ repeat: Infinity, duration: 2 }}
+             />
+          )}
+        </button>
+
         <div className="system-status">
           <div className="status-item">
-            <span className="status-dot online"></span>
-            <span className="status-text">System Active</span>
+            <span className={`status-dot ${props.isVoiceActive ? 'voice-enabled' : 'online'}`}></span>
+            <span className="status-text">{props.isVoiceActive ? 'Voice System Ready' : 'System Active'}</span>
           </div>
         </div>
         

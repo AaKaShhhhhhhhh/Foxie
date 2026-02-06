@@ -14,7 +14,8 @@ const FoxieAvatar = ({
   needs = { hunger: 80, thirst: 80, sleep: 80, happiness: 80 },
   onInteraction,
   onCommand, // Added prop for chat
-  userActivity = null
+  userActivity = null,
+  pomodoroState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
 }) => {
   // Position and animation state
   const [position, setPosition] = useState({ x: 80, y: 70 }); // Default bottom-rightish
@@ -22,6 +23,9 @@ const FoxieAvatar = ({
   const [currentAnimation, setCurrentAnimation] = useState('idle');
   const [thought, setThought] = useState(null);
   const [isFollowingMouse, setIsFollowingMouse] = useState(false);
+  
+  // Pomodoro Mode Derived State
+  const isPomodoroMode = pomodoroState?.isRunning;
 
   // Mouse tracking
   const mouseX = useMotionValue(0);
@@ -115,10 +119,30 @@ const FoxieAvatar = ({
         setCurrentAnimation('shake');
         setThought('*offers paw* 🤝');
       },
+      GREETING: () => {
+        setCurrentAnimation('happy');
+        setThought('Hi there! 👋 I\'m ready to help!');
+      },
+      STATUS: () => {
+         setCurrentAnimation('love');
+         setThought(`I'm feeling ${mood}! Thanks for asking! 🦊`);
+      },
       CHAT: () => {
         setCurrentAnimation('curious');
         setThought('Hmm, interesting! 💭');
       },
+      OPEN_APP: () => {
+         // "Float" up briefly
+         setTargetPosition({ ...position, y: 10 }); 
+         setCurrentAnimation('jumping');
+         setThought(`Opening ${lastCommand.app || 'app'}! 📱`);
+         
+         // Return after 2s
+         setTimeout(() => {
+             setTargetPosition({ x: 80, y: 70 });
+             setCurrentAnimation('idle');
+         }, 2000);
+      }
     };
 
     const reaction = reactions[lastCommand.type];
@@ -139,7 +163,7 @@ const FoxieAvatar = ({
    * Only wander if awake and idle
    */
   useEffect(() => {
-    if (!isAwake || currentAnimation !== 'idle') return;
+    if (!isAwake || currentAnimation !== 'idle' || isPomodoroMode) return;
 
     wanderIntervalRef.current = setInterval(() => {
       // 30% chance to move every 10 seconds
@@ -181,10 +205,110 @@ const FoxieAvatar = ({
   }, [targetPosition, position]);
 
   /**
-   * Animation Styles
+   * Pomodoro Mode Logic
    */
+  useEffect(() => {
+    if (isPomodoroMode) {
+      // Move to side and look like a clock
+      setTargetPosition({ x: 92, y: 50 });
+      setCurrentAnimation('pomodoro');
+      
+      // Initial encouragement
+      setThought(
+        pomodoroState.sessionType === 'work' 
+          ? "Focus time! I'll keep watch. ⏱️" 
+          : "Relax! Take a deep breath. ☕"
+      );
+      
+      // Clear thought after 5s
+      const timeout = setTimeout(() => setThought(null), 5000);
+      return () => clearTimeout(timeout);
+    } else if (currentAnimation === 'pomodoro') {
+      // Reset when stopping
+      setCurrentAnimation('idle');
+      setTargetPosition({ x: 80, y: 70 });
+    }
+  }, [isPomodoroMode, pomodoroState.sessionType]);
+
+  // Periodic Pomodoro Checks (every 5 mins approx, or based on time left)
+  useEffect(() => {
+    if (!isPomodoroMode) return;
+
+    // Check periodically on specific time markers roughly
+    const minsLeft = Math.floor(pomodoroState.timeLeft / 60);
+    const secsLeft = pomodoroState.timeLeft % 60;
+    
+    // Only react on exact minute boundaries to avoid spam, and only sometimes
+    if (secsLeft === 0 && minsLeft > 0 && minsLeft % 5 === 0) {
+       setThought(`You're doing great! ${minsLeft}m to go! 🦊`);
+       setTimeout(() => setThought(null), 4000);
+    }
+  }, [pomodoroState.timeLeft, isPomodoroMode]);
+
+  /**
+   * Animation Variants
+   */
+  const avatarVariants = {
+    idle: { 
+      scale: 1, 
+      y: 0, 
+      rotate: 0,
+      transition: { type: 'spring', stiffness: 300, damping: 20 }
+    },
+    walking: { 
+      y: [0, -10, 0],
+      x: [0, 5, 0],
+      transition: { repeat: Infinity, duration: 0.6 }
+    },
+    jumping: { 
+      y: [0, 20, -100, 0], // Squish, Jump, Land
+      scaleY: [1, 0.7, 1.3, 1], // Stretch in air
+      transition: { duration: 0.8, times: [0, 0.2, 0.5, 1] }
+    },
+    playful: { 
+      rotate: [0, 10, -10, 0],
+      scale: [1, 1.1, 1],
+      transition: { repeat: Infinity, duration: 0.8 }
+    },
+    spinning: { 
+      rotate: 360,
+      scale: [1, 0.8, 1],
+      transition: { duration: 0.6 }
+    },
+    alert: { 
+      scale: 1.15,
+      y: -10,
+      transition: { type: 'spring', stiffness: 500 }
+    },
+    bark: {
+      scale: [1, 1.2, 1],
+      rotate: [0, -10, 0],
+      transition: { duration: 0.2, repeat: 2 }
+    },
+    rolling: {
+      rotate: [0, 180, 360],
+      x: [0, 50, 0],
+      transition: { duration: 1 }
+    },
+    love: {
+      scale: [1, 1.2, 1],
+      transition: { repeat: Infinity, duration: 1.5 }
+    },
+    eating: {
+      y: [0, 5, 0],
+      scaleX: [1, 1.1, 1],
+      transition: { repeat: Infinity, duration: 0.3 }
+    },
+    sleeping: {
+      scale: 0.8,
+      opacity: 0.8,
+      y: 10,
+      transition: { duration: 1 }
+    }
+  };
+
   const getAnimationStyles = () => {
-    const base = {
+    return {
       position: 'fixed',
       left: `${position.x}%`,
       top: `${position.y}%`,
@@ -194,27 +318,7 @@ const FoxieAvatar = ({
       x: '-50%',
       y: '-50%',
       cursor: 'pointer',
-      opacity: 1, /* Ensure it becomes visible! */
-    };
-
-    if (!isAwake) {
-      return { ...base, scale: 0.8, opacity: 0.8, y: '-40%' }; // Sleeping visually distinct
-    }
-
-    const stateTransforms = {
-      idle: { scale: 1 },
-      walking: { y: ['-50%', '-55%', '-50%'], transition: { repeat: Infinity, duration: 0.5 } },
-      jumping: { y: ['-50%', '-80%', '-50%'] },
-      playful: { rotate: [0, 5, -5, 0], transition: { repeat: Infinity } },
-      spinning: { rotate: 360 },
-      alert: { scale: 1.1 },
-    };
-
-    // Fallback for animations without specific transforms (e.g. love, eating, etc)
-    return {
-      scale: 1,
-      ...base,
-      ...stateTransforms[currentAnimation]
+      opacity: 1,
     };
   };
 
@@ -266,14 +370,15 @@ const FoxieAvatar = ({
 
       <motion.div
         className={`foxie-avatar-container ${currentAnimation}`}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={getAnimationStyles()}
+        style={getAnimationStyles()}
+        variants={avatarVariants}
+        animate={currentAnimation}
+        initial="idle"
         exit={{ scale: 0, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 15 }}
         drag
         dragMomentum={false}
-        dragElastic={0.2} /* Bounce effect when hitting edges */
-        dragConstraints={constraintsRef} /* Constrain to window */
+        dragElastic={0.2}
+        dragConstraints={constraintsRef}
         onDragEnd={handleDragEnd}
         onTap={() => {
           if (!chatMode) {
@@ -284,7 +389,7 @@ const FoxieAvatar = ({
         }}
       >
         <FoxieAvatarSVG
-          mood={currentAnimation === 'idle' ? mood : currentAnimation}
+          mood={isPomodoroMode ? 'pomodoro' : (currentAnimation === 'idle' ? mood : currentAnimation)}
           isListening={isListening}
           isAwake={isAwake}
         />
