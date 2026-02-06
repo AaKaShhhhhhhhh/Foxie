@@ -29,7 +29,7 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const handsRef = useRef(null);
-  const rafRef = useRef(null);
+  const _rafRef = useRef(null);
   const _previousLandmarks = useRef(null);
   const charlieQueryRef = useRef(null);
 
@@ -97,13 +97,7 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
 
   // Hand detection loop
   const detectHands = useCallback(() => {
-    if (!handsRef.current || !videoRef.current) {
-      rafRef.current = requestAnimationFrame(detectHands);
-      return;
-    }
-
-    // Existing hand detection code continues...
-    rafRef.current = requestAnimationFrame(detectHands);
+    if (!handsRef.current || !videoRef.current) return;
   }, []);
 
   // Initialize MediaPipe Hands
@@ -150,7 +144,6 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
       if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
       }
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [detectHands]);
 
