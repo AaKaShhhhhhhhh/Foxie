@@ -235,11 +235,15 @@ const Desktop = () => {
       {/* Desktop Background */}
       <div className="desktop-background"></div>
 
-      <DesktopWidgets
-        focusTime={focusTime}
-        windowsOpen={windows.length}
-        onOpenAssistant={() => openWindow('Foxie Assistant')}
-      />
+      <div className="desktop-hud">
+        <DesktopWidgets
+          focusTime={focusTime}
+          windowsOpen={windows.length}
+          onOpenAssistant={() => openWindow('Foxie Assistant')}
+        />
+
+        <Notifications notifications={notifications} />
+      </div>
 
       {/* Windows */}
       <div className="windows-container">
@@ -289,9 +293,6 @@ const Desktop = () => {
 
       {/* Tambo AI Suggestions */}
       <TamboUI />
-
-      {/* Notifications */}
-      <Notifications notifications={notifications} />
 
       {/* Start Menu */}
       {startMenuOpen && (
