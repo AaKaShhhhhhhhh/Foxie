@@ -9,6 +9,7 @@ const Window = ({
   onMinimize,
   onFocus,
   isActive,
+  noPadding = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -39,6 +40,7 @@ const Window = ({
   return (
     <div
       className={`window ${isActive ? 'active' : ''}`}
+      data-window-id={id}
       style={{
         left: `${pos.x}px`,
         top: `${pos.y}px`,
@@ -67,7 +69,7 @@ const Window = ({
       </div>
 
       {/* Window Content */}
-      <div className="window-content">{children}</div>
+      <div className={`window-content ${noPadding ? 'window-content--flush' : ''}`}>{children}</div>
     </div>
   );
 };

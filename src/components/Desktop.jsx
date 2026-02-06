@@ -284,6 +284,7 @@ const Desktop = () => {
               id={window.id}
               title={window.name}
               position={window.position}
+              noPadding={window.name === 'Dashboard'}
               onClose={() => closeWindow(window.id)}
               onMinimize={() => toggleMinimize(window.id)}
               onFocus={() => bringToFront(window.id)}

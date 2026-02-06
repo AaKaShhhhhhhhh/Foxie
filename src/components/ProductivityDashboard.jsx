@@ -3,12 +3,13 @@
  * Shows daily stats, streaks, achievements, and progress
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useBehaviorTracking } from '../hooks/useBehaviorTracking';
 import { useAdaptiveUI } from './AdaptiveUIProvider';
 
 const QUICK_NOTE_STORAGE_KEY = 'foxie.widgets.quickNote.v1';
+const MotionDiv = motion.div;
 
 function safeReadLocalStorage(key) {
   try {
@@ -38,7 +39,10 @@ const ProductivityDashboard = ({ onOpenApp }) => {
   const [now, setNow] = useState(() => new Date());
   const [quickNote, setQuickNote] = useState(() => safeReadLocalStorage(QUICK_NOTE_STORAGE_KEY) ?? '');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [widgetsMenuOpen, setWidgetsMenuOpen] = useState(false);
   const [activeWidget, setActiveWidget] = useState('activity');
+  const widgetRefs = useRef({});
+  const widgetsMenuRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 15_000);
@@ -56,6 +60,43 @@ const ProductivityDashboard = ({ onOpenApp }) => {
   const toggleSidebar = useCallback(() => {
     setSidebarOpen(prev => !prev);
   }, []);
+
+  const toggleWidgetsMenu = useCallback(() => {
+    setWidgetsMenuOpen(prev => !prev);
+  }, []);
+
+  const focusWidget = useCallback((widgetId) => {
+    setActiveWidget(widgetId);
+    setWidgetsMenuOpen(false);
+
+    const node = widgetRefs.current[widgetId];
+    if (!node) return;
+
+    node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    if (!widgetsMenuOpen) return;
+
+    const handlePointerDown = (event) => {
+      if (!widgetsMenuRef.current) return;
+      if (widgetsMenuRef.current.contains(event.target)) return;
+      setWidgetsMenuOpen(false);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      setWidgetsMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [widgetsMenuOpen]);
 
   const handleOpen = useCallback(
     (appName) => {
@@ -83,7 +124,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
   const dateText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <motion.div
+    <MotionDiv
       className="dashboard-scene"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -92,7 +133,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
       <div className="dashboard-topbar">
         <div className="dashboard-brand-section">
           <button className="dashboard-sidebar-toggle" type="button" onClick={toggleSidebar}>
-            ☰
+            Menu
           </button>
           <div className="dashboard-brand">Foxie</div>
         </div>
@@ -100,15 +141,62 @@ const ProductivityDashboard = ({ onOpenApp }) => {
           <button className="nav-btn nav-btn-primary" type="button" onClick={() => handleOpen('Foxie Assistant')}>
             Assistant
           </button>
-          <button className="nav-btn" type="button" onClick={() => handleOpen('Task Manager')}>
-            Tasks
-          </button>
-          <button className="nav-btn" type="button" onClick={() => handleOpen('Notes')}>
-            Notes
-          </button>
-          <button className="nav-btn" type="button" onClick={() => handleOpen('Pomodoro')}>
-            Timer
-          </button>
+          <div className="dashboard-dropdown" ref={widgetsMenuRef}>
+            <button
+              className={`nav-btn ${widgetsMenuOpen ? 'nav-btn-active' : ''}`}
+              type="button"
+              onClick={toggleWidgetsMenu}
+              aria-haspopup="menu"
+              aria-expanded={widgetsMenuOpen}
+            >
+              Widgets
+            </button>
+            {widgetsMenuOpen && (
+              <div className="dashboard-menu" role="menu">
+                <button
+                  className="dashboard-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => focusWidget('activity')}
+                >
+                  Activity
+                </button>
+                <button
+                  className="dashboard-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setWidgetsMenuOpen(false);
+                    handleOpen('Notes');
+                  }}
+                >
+                  Notes
+                </button>
+                <button
+                  className="dashboard-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setWidgetsMenuOpen(false);
+                    handleOpen('Pomodoro');
+                  }}
+                >
+                  Pomodoro
+                </button>
+                <button
+                  className="dashboard-menu-item"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setWidgetsMenuOpen(false);
+                    handleOpen('Task Manager');
+                  }}
+                >
+                  Tasks
+                </button>
+              </div>
+            )}
+          </div>
           <button className="nav-btn nav-btn-active" type="button">
             Dashboard
           </button>
@@ -117,7 +205,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
 
       <div className="dashboard-layout">
         {/* Collapsible Sidebar */}
-        <motion.div 
+        <MotionDiv 
           className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}
           initial={false}
           animate={{ width: sidebarOpen ? 260 : 0 }}
@@ -128,40 +216,48 @@ const ProductivityDashboard = ({ onOpenApp }) => {
               <div className="sidebar-section">
                 <button 
                   className={`sidebar-tab ${activeWidget === 'activity' ? 'active' : ''}`}
-                  onClick={() => setActiveWidget('activity')}
+                  type="button"
+                  onClick={() => focusWidget('activity')}
                 >
-                  📊 Activity
+                  Activity
                 </button>
                 <button 
-                  className={`sidebar-tab ${activeWidget === 'notes' ? 'active' : ''}`}
-                  onClick={() => setActiveWidget('notes')}
+                  className={`sidebar-tab ${activeWidget === 'note' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => focusWidget('note')}
                 >
-                  📝 Notes
+                  Quick note
                 </button>
                 <button 
-                  className={`sidebar-tab ${activeWidget === 'timer' ? 'active' : ''}`}
-                  onClick={() => setActiveWidget('timer')}
+                  className={`sidebar-tab ${activeWidget === 'today' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => focusWidget('today')}
                 >
-                  ⏱️ Timer
+                  Today
                 </button>
                 <button 
-                  className={`sidebar-tab ${activeWidget === 'tasks' ? 'active' : ''}`}
-                  onClick={() => setActiveWidget('tasks')}
+                  className={`sidebar-tab ${activeWidget === 'insight' ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => focusWidget('insight')}
                 >
-                  ✅ Tasks
+                  Insight
                 </button>
               </div>
             </div>
           )}
-        </motion.div>
+        </MotionDiv>
 
         {/* Main Content */}
         <div className="dashboard-main">
           <div className="dashboard-widgets">
             {/* Time Widget */}
-            <div className="dash-widget time-widget">
+            <div
+              className={`dash-widget time-widget ${activeWidget === 'time' ? 'focused' : ''}`}
+              ref={(node) => {
+                widgetRefs.current.time = node;
+              }}
+            >
               <div className="widget-header">
-                <span className="widget-icon">🕐</span>
                 <span className="widget-label">Time</span>
               </div>
               <div className="widget-content">
@@ -171,9 +267,13 @@ const ProductivityDashboard = ({ onOpenApp }) => {
             </div>
 
             {/* Activity Widget */}
-            <div className="dash-widget activity-widget">
+            <div
+              className={`dash-widget activity-widget ${activeWidget === 'activity' ? 'focused' : ''}`}
+              ref={(node) => {
+                widgetRefs.current.activity = node;
+              }}
+            >
               <div className="widget-header">
-                <span className="widget-icon">📊</span>
                 <span className="widget-label">Activity</span>
               </div>
               <div className="widget-content">
@@ -194,9 +294,13 @@ const ProductivityDashboard = ({ onOpenApp }) => {
             </div>
 
             {/* Stats Widget */}
-            <div className="dash-widget stats-widget">
+            <div
+              className={`dash-widget stats-widget ${activeWidget === 'today' ? 'focused' : ''}`}
+              ref={(node) => {
+                widgetRefs.current.today = node;
+              }}
+            >
               <div className="widget-header">
-                <span className="widget-icon">📈</span>
                 <span className="widget-label">Today</span>
               </div>
               <div className="widget-content">
@@ -218,11 +322,15 @@ const ProductivityDashboard = ({ onOpenApp }) => {
             </div>
 
             {/* Quick Note Widget */}
-            <div className="dash-widget note-widget">
+            <div
+              className={`dash-widget note-widget ${activeWidget === 'note' ? 'focused' : ''}`}
+              ref={(node) => {
+                widgetRefs.current.note = node;
+              }}
+            >
               <div className="widget-header">
-                <span className="widget-icon">📝</span>
                 <span className="widget-label">Quick Note</span>
-                <button className="widget-action-btn" onClick={handleClearNote}>Clear</button>
+                <button className="widget-action-btn" type="button" onClick={handleClearNote}>Clear</button>
               </div>
               <div className="widget-content">
                 <textarea
@@ -235,9 +343,13 @@ const ProductivityDashboard = ({ onOpenApp }) => {
             </div>
 
             {/* Tambo Insight Widget */}
-            <div className="dash-widget insight-widget">
+            <div
+              className={`dash-widget insight-widget ${activeWidget === 'insight' ? 'focused' : ''}`}
+              ref={(node) => {
+                widgetRefs.current.insight = node;
+              }}
+            >
               <div className="widget-header">
-                <span className="widget-icon">💡</span>
                 <span className="widget-label">Tambo Insight</span>
               </div>
               <div className="widget-content">
@@ -248,7 +360,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
