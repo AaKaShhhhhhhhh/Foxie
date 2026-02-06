@@ -9,8 +9,7 @@ import Notifications from './Notifications';
 import { AdaptiveUIProvider } from './AdaptiveUIProvider';
 import TamboUI from './TamboUI';
 import AssistantChat from './AssistantChat';
-import DesktopWidgets from './DesktopWidgets';
-import DesktopSideWidgets from './DesktopSideWidgets';
+import DesktopTopBar from './DesktopTopBar';
 import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
@@ -80,16 +79,14 @@ const Desktop = () => {
     const id = Date.now();
 
     setWindows((prev) => {
-      const widgetInsetTop = 24;
+      const widgetInsetTop = 60; // Adjusted for Top Bar
       const widgetInsetSide = 24;
-      const leftWidgetsWidth = 320;
-      const rightWidgetsWidth = 300;
       const taskbarHeight = 56;
       const windowMinWidth = 400;
       const windowMinHeight = 300;
 
-      const safeLeft = widgetInsetSide + leftWidgetsWidth + widgetInsetSide;
-      const safeRight = widgetInsetSide + rightWidgetsWidth + widgetInsetSide;
+      const safeLeft = widgetInsetSide;
+      const safeRight = widgetInsetSide;
       const safeTop = widgetInsetTop;
       const safeBottom = taskbarHeight + 24;
 
@@ -264,18 +261,11 @@ const Desktop = () => {
       {/* Desktop Background */}
       <div className="desktop-background"></div>
 
-      <DesktopSideWidgets
-        onOpenApp={openWindow}
-        onNotify={(message) => addNotification(message, 2500)}
-      />
+      {/* Top Navigation Bar - Replaces Desktop Widgets */}
+      <DesktopTopBar onOpenApp={openWindow} />
 
-      <div className="desktop-hud">
-        <DesktopWidgets
-          focusTime={focusTime}
-          windowsOpen={windows.length}
-          onOpenAssistant={() => openWindow('Foxie Assistant')}
-        />
-
+      {/* Desktop HUD - Only for Notifications now (Invisible container) */}
+      <div className="desktop-hud" style={{ pointerEvents: 'none' }}>
         <Notifications notifications={notifications} />
       </div>
 
@@ -355,4 +345,3 @@ const Desktop = () => {
 };
 
 export default Desktop;
-
