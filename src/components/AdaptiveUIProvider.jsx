@@ -10,8 +10,10 @@
  */
 
 import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
-import { getAdaptiveUI, useTamboAdaptiveUI } from '../tambo/registry';
-import { getCharlieResponse, reasonAboutState } from '../ai/charlie';
+import { useTamboAdaptiveUI } from '../tambo/registry';
+import { reasonAboutState } from '../ai/charlie';
+
+const EMPTY_APP_STATE = Object.freeze({});
 
 // Create context for adaptive UI state
 export const AdaptiveUIContext = createContext(null);
@@ -39,7 +41,7 @@ export function useAdaptiveUI() {
  * </AdaptiveUIProvider>
  * ```
  */
-export const AdaptiveUIProvider = ({ children, appState = {} }) => {
+export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => {
   const [adaptiveUI, setAdaptiveUI] = useState({
     intent: 'system.desktop',
     component: 'Desktop',
@@ -177,7 +179,7 @@ export function useTriggerAdaptiveUI() {
   const context = useContext(AdaptiveUIContext);
 
   const suggest = useCallback(
-    async (userAction) => {
+    async () => {
       if (context?.triggerAnalysis) {
         await context.triggerAnalysis();
       }

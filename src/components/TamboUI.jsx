@@ -62,7 +62,7 @@ const TamboUI = ({ showSuggestions = true }) => {
         )}
 
         {/* Debug Info (development only) */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <div className="tambo-debug">
             <small>Component: {adaptiveUI.component}</small>
             <small>Priority: {adaptiveUI.priority}</small>
