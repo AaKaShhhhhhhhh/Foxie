@@ -7,10 +7,8 @@ import { useFoxPersonality } from '../hooks/useFoxPersonality';
 import { useFoxAutonomy } from '../hooks/useFoxAutonomy';
 import { useVoiceActivation } from '../hooks/useVoiceActivation';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
-import { detectGesture } from '../utils/gestureRecognition';
 
-const _framerMotionSentinel = motion.div;
-const _gestureSentinel = detectGesture;
+const MotionDiv = motion.div;
 
 /**
  * PetAssistantUltimate - The ultimate AI fox with personality, autonomy, and mind of its own
@@ -25,23 +23,18 @@ const _gestureSentinel = detectGesture;
  * - Adaptive UI via Tambo
  */
 const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification }) => {
-  const _canvasRef = useRef(null);
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
   const handsRef = useRef(null);
-  const _rafRef = useRef(null);
-  const _previousLandmarks = useRef(null);
   const charlieQueryRef = useRef(null);
 
   // Hand tracking state - must be declared before hooks that use it
-  const [handVisible, _setHandVisible] = useState(false);
-  const [_handPosition, _setHandPosition] = useState(null);
-  const [currentGesture, _setCurrentGesture] = useState(null);
+  const [handVisible] = useState(false);
+  const [currentGesture] = useState(null);
   const [foxScale, setFoxScale] = useState(1);
-  const [_lastCharlieFeedback, _setLastCharlieFeedback] = useState(null);
 
   // Emotion and behavior state
-  const { stats, mood: _mood, suggestion } = usePetEmotions({
+  const { stats, suggestion } = usePetEmotions({
     userActive,
     windowsOpen,
     focusSessionActive: false,
@@ -55,7 +48,7 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
     currentBehavior, 
     transitionBehavior 
   } = useFoxPersonality(stats);
-  const { position, setTargetPosition: _setTargetPosition, idleBehavior, isWalking } = useFoxAutonomy(
+  const { position, idleBehavior, isWalking } = useFoxAutonomy(
     handVisible,
     foxMood
   );
@@ -328,38 +321,6 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
       return () => clearTimeout(timer);
     }
   }, [voiceSupported, isVoiceListening, startListening]);
-  const _handleGesture = (gesture) => {
-    switch (gesture) {
-      case 'wave':
-        playGestureSound('wave');
-        setFoxScale(1.15);
-        transitionBehavior('playful');
-        if (onSpeak) onSpeak('*waves paw excitedly* 👋');
-        trackActivity('pet_interaction', { type: 'wave', mood: foxMood });
-        setTimeout(() => setFoxScale(1), 600);
-        break;
-
-      case 'thumbsUp':
-        playGestureSound('thumbsUp');
-        setFoxScale(1.3);
-        transitionBehavior('jumping');
-        if (onSpeak) onSpeak('*jumps with joy and spins!* 🎉');
-        trackActivity('pet_interaction', { type: 'thumbsUp', mood: foxMood });
-        setTimeout(() => setFoxScale(1), 700);
-        break;
-
-      case 'proximity':
-        playGestureSound('proximity');
-        transitionBehavior('sniffing');
-        if (onSpeak) onSpeak('*sniffs curiously* 👃');
-        trackActivity('pet_interaction', { type: 'proximity', mood: foxMood });
-        break;
-
-      default:
-        break;
-    }
-  };
-
   /**
    * Charlie LLM feedback hook
    * Occasionally asks Charlie for reasoning about fox behavior
@@ -370,18 +331,6 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
 
       try {
         charlieQueryRef.current = true;
-
-        // Example: Ask Charlie if the fox should cheer the user up
-        const _prompt = `
-          The fox is currently in a "${foxMood}" mood with personality:
-          - Playfulness: ${(personality.playfulness * 100).toFixed(0)}%
-          - Curiosity: ${(personality.curiosity * 100).toFixed(0)}%
-          - Tiredness: ${(personality.tiredness * 100).toFixed(0)}%
-          - Sociability: ${(personality.sociability * 100).toFixed(0)}%
-          
-          User has been ${userActive ? 'active' : 'inactive'} for a while.
-          Should the fox try to engage the user? Respond in 1 short sentence.
-        `;
 
         // Placeholder for Charlie API call
         // const response = await charlieAPI.query(prompt);
@@ -501,14 +450,14 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
       {/* Hand tracking indicator */}
       <AnimatePresence>
         {handVisible && (
-          <motion.div
+          <MotionDiv
             className="hand-indicator"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
           >
             ✋ Connected
-          </motion.div>
+          </MotionDiv>
         )}
       </AnimatePresence>
 
