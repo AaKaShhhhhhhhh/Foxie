@@ -13,15 +13,30 @@
   height: calc(100% - 56px);
 }
 
-.desktop-widgets {
+.desktop-hud {
   position: fixed;
   top: 18px;
   right: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  z-index: 6;
-  width: min(260px, calc(100vw - 36px));
+  z-index: 3000;
+  width: min(300px, calc(100vw - 36px));
+}
+
+.desktop-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.desktop-hud .notifications-container {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  max-width: 100%;
 }
 
 .widget-card {
@@ -186,7 +201,7 @@
     display: none;
   }
 
-  .desktop-widgets {
+  .desktop-hud {
     width: min(220px, calc(100vw - 36px));
   }
 }
