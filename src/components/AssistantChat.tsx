@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { callLLM } from '../utils/ai';
-import { emitFoxieWake, isFoxieWakePhrase } from '../utils/foxieWake';
+import { emitFoxieWake, isFoxieWakeOnlyPhrase, isFoxieWakePhrase } from '../utils/foxieWake';
 
 export default function AssistantChat() {
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([]);
@@ -9,6 +9,17 @@ export default function AssistantChat() {
 
   const send = async (text: string) => {
     if (!text) return;
+
+    if (isFoxieWakeOnlyPhrase(text)) {
+      emitFoxieWake({ source: 'text', text });
+      setMessages(prev => [
+        ...prev,
+        { role: 'user', text },
+        { role: 'assistant', text: "I'm here. What can I do?" },
+      ]);
+      setInput('');
+      return;
+    }
 
     if (isFoxieWakePhrase(text)) {
       emitFoxieWake({ source: 'text', text });

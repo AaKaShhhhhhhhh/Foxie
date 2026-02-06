@@ -15,6 +15,12 @@ export function isFoxieWakePhrase(text) {
   return WAKE_PHRASES.some((phrase) => normalized.includes(phrase));
 }
 
+export function isFoxieWakeOnlyPhrase(text) {
+  const normalized = normalizeFoxieText(text);
+  if (!normalized) return false;
+  return WAKE_PHRASES.includes(normalized);
+}
+
 export function emitFoxieWake(detail = {}) {
   if (typeof window === 'undefined') return;
 
