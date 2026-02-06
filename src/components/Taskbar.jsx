@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 
 const Taskbar = ({
   startMenuOpen,
@@ -11,23 +11,7 @@ const Taskbar = ({
   windowCount,
   minimizedCount,
 }) => {
-  const [time, setTime] = useState(new Date());
   const [commandText, setCommandText] = useState('');
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
 
   const visibleWindows = useMemo(
     () => windows.filter((w) => w && typeof w.id !== 'undefined'),
@@ -102,7 +86,7 @@ const Taskbar = ({
             {minimizedCount} minimized
           </span>
         )}
-        <span className="taskbar-clock">{formatTime(time)}</span>
+
       </div>
     </div>
   );

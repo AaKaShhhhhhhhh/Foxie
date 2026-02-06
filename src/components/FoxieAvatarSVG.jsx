@@ -45,14 +45,16 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
 
   const leftEyeProps = getEyePath();
   // Mirror for right eye if it's a path; calculate offset if circle
-  const rightEyeProps = mood === 'angry' 
+  const rightEyeProps = mood === 'angry'
     ? { d: "M 145 60 L 165 50", stroke: "#3d2b1f", fill: "none", strokeWidth: 4 }
-    : (leftEyeProps.d 
-        ? { ...leftEyeProps, d: leftEyeProps.d.replace(/(\d+)/g, (n) => String(200 - parseInt(n))) // Simple horizontal flip math approx for this scale
-             .replace(/35/g, '145').replace(/45/g, '155').replace(/55/g, '165') } // Manual override if regex fails
-        : { ...leftEyeProps, cx: 155 }
-      );
-      
+    : (leftEyeProps.d
+      ? {
+        ...leftEyeProps, d: leftEyeProps.d.replace(/(\d+)/g, (n) => String(200 - parseInt(n))) // Simple horizontal flip math approx for this scale
+          .replace(/35/g, '145').replace(/45/g, '155').replace(/55/g, '165')
+      } // Manual override if regex fails
+      : { ...leftEyeProps, cx: 155 }
+    );
+
   // Fix manual override flakiness by just defining generic shapes properly
   const RightEye = () => {
     if (mood === 'sleeping' || mood === 'tired') {
@@ -107,10 +109,10 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
           <stop offset="100%" stopColor="#EA580C" />
         </linearGradient>
         <filter id="glow">
-          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
           <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
@@ -153,21 +155,8 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
           <ellipse cx="170" cy="110" rx="10" ry="6" fill="#fda4af" opacity="0.6" />
         </>
       )}
-      
-      {/* Listening Glow Ring */}
-      <AnimatePresence>
-        {isListening && (
-          <motion.circle 
-            cx="100" cy="100" r="95" 
-            fill="none" 
-            stroke="#4ecdc4" 
-            strokeWidth="3"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: [0.5, 1, 0.5], scale: 1.05 }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          />
-        )}
-      </AnimatePresence>
+
+
     </svg>
   );
 };

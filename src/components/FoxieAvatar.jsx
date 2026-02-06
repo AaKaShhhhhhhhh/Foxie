@@ -6,13 +6,14 @@ import FoxieAvatarSVG from './FoxieAvatarSVG';
  * FoxieAvatar - The ultimate reactive fox avatar
  * Reacts to everything: voice, mouse, time, activities
  */
-const FoxieAvatar = ({ 
+const FoxieAvatar = ({
   mood = 'happy',
   isAwake = true,
   isListening = false,
   lastCommand = null,
   needs = { hunger: 80, thirst: 80, sleep: 80, happiness: 80 },
   onInteraction,
+  onCommand, // Added prop for chat
   userActivity = null
 }) => {
   // Position and animation state
@@ -21,11 +22,11 @@ const FoxieAvatar = ({
   const [currentAnimation, setCurrentAnimation] = useState('idle');
   const [thought, setThought] = useState(null);
   const [isFollowingMouse, setIsFollowingMouse] = useState(false);
-  
+
   // Mouse tracking
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  
+
   // Refs
   const thoughtTimeoutRef = useRef(null);
   const wanderIntervalRef = useRef(null);
@@ -123,7 +124,7 @@ const FoxieAvatar = ({
     const reaction = reactions[lastCommand.type];
     if (reaction) {
       reaction();
-      
+
       // Clear thought after delay
       if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
       thoughtTimeoutRef.current = setTimeout(() => {
@@ -146,10 +147,10 @@ const FoxieAvatar = ({
         // Keep within bounds (10% to 90%)
         const newX = Math.max(10, Math.min(90, position.x + (Math.random() - 0.5) * 20));
         const newY = Math.max(20, Math.min(80, position.y + (Math.random() - 0.5) * 15));
-        
+
         setTargetPosition({ x: newX, y: newY });
         setCurrentAnimation('walking');
-        
+
         setTimeout(() => {
           setCurrentAnimation('idle');
         }, 2000); // Walk for 2 seconds
@@ -168,7 +169,7 @@ const FoxieAvatar = ({
     const frame = requestAnimationFrame(() => {
       const dx = targetPosition.x - position.x;
       const dy = targetPosition.y - position.y;
-      
+
       if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
         setPosition(prev => ({
           x: prev.x + dx * 0.05,
@@ -187,12 +188,13 @@ const FoxieAvatar = ({
       position: 'fixed',
       left: `${position.x}%`,
       top: `${position.y}%`,
-      zIndex: 1000,
+      zIndex: 10001,
       width: '150px',
       height: '150px',
       x: '-50%',
       y: '-50%',
       cursor: 'pointer',
+      opacity: 1, /* Ensure it becomes visible! */
     };
 
     if (!isAwake) {
@@ -208,50 +210,134 @@ const FoxieAvatar = ({
       alert: { scale: 1.1 },
     };
 
-    return { ...base, ...stateTransforms[currentAnimation] };
+    // Fallback for animations without specific transforms (e.g. love, eating, etc)
+    return {
+      scale: 1,
+      ...base,
+      ...stateTransforms[currentAnimation]
+    };
   };
 
+  /* Interactive State */
+  const [chatMode, setChatMode] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+
+  /* Handle Drag Interaction */
+  const handleDragEnd = (event, info) => {
+    // Just trigger interaction to keep awake
+    if (onInteraction) onInteraction();
+  };
+
+  const handleChatSubmit = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    setThought('Thinking... 💭');
+    if (onInteraction) onInteraction();
+
+    // Parse command locally first for smart handling
+    import('../utils/foxieCommands').then(({ parseFoxieCommand }) => {
+      setTimeout(() => {
+        if (onCommand) onCommand(chatInput);
+        setChatInput('');
+        setChatMode(false);
+      }, 1000);
+    });
+  };
+
+  /* Drag Constraints */
+  const constraintsRef = useRef(null);
+
   return (
-    <motion.div
-      className={`foxie-avatar-container ${currentAnimation}`}
-      initial={{ scale: 0, opacity: 0 }} /* Pop up animation */
-      animate={getAnimationStyles()}
-      exit={{ scale: 0, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 120, damping: 15 }}
-      onTap={() => setThought(isAwake ? 'Pet me more! 🥰' : 'Zzz... 😴')}
-    >
-      <FoxieAvatarSVG 
-        mood={currentAnimation === 'idle' ? mood : currentAnimation} 
-        isListening={isListening}
-        isAwake={isAwake}
+    <>
+      {/* Constraints Container - Full Screen Invisible */}
+      <div
+        ref={constraintsRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          zIndex: 10000
+        }}
       />
 
-      {/* Thought Bubble */}
-      <AnimatePresence>
-        {thought && (
-          <motion.div
-            className="thought-bubble"
-            style={{ 
-                position: 'absolute', 
-                bottom: '100%', 
-                left: '50%', 
+      <motion.div
+        className={`foxie-avatar-container ${currentAnimation}`}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={getAnimationStyles()}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 15 }}
+        drag
+        dragMomentum={false}
+        dragElastic={0.2} /* Bounce effect when hitting edges */
+        dragConstraints={constraintsRef} /* Constrain to window */
+        onDragEnd={handleDragEnd}
+        onTap={() => {
+          if (!chatMode) {
+            setChatMode(true);
+            setThought("What do we need? 🦊");
+            if (onInteraction) onInteraction();
+          }
+        }}
+      >
+        <FoxieAvatarSVG
+          mood={currentAnimation === 'idle' ? mood : currentAnimation}
+          isListening={isListening}
+          isAwake={isAwake}
+        />
+
+        {/* Thought Bubble / Chat Input */}
+        <AnimatePresence>
+          {(thought || chatMode) && (
+            <motion.div
+              className="thought-bubble"
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: '50%',
                 translateX: '-50%',
                 marginBottom: '10px',
                 background: 'white',
                 padding: '8px 12px',
                 borderRadius: '12px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                whiteSpace: 'nowrap',
+                minWidth: '120px',
                 zIndex: 1001,
-                fontSize: '14px',
-                color: '#333'
-            }}
-            initial={{ opacity: 0, scale: 0.5, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.5, y: 10 }}
-          >
-            {thought}
-            <div style={{
+                overflow: 'hidden'
+              }}
+              initial={{ opacity: 0, scale: 0.5, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.5, y: 10 }}
+              // Stop drag propagation on the bubble so we can interact with input
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {chatMode ? (
+                <form onSubmit={handleChatSubmit} style={{ display: 'flex', gap: '4px' }}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Tell Foxie..."
+                    autoFocus
+                    style={{
+                      border: '1px solid #eee',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      fontSize: '12px',
+                      outline: 'none',
+                      width: '100%'
+                    }}
+                    onBlur={() => setTimeout(() => setChatMode(false), 200)} // Close on blur delay
+                  />
+                </form>
+              ) : (
+                <span style={{ fontSize: '14px', color: '#333', whiteSpace: 'nowrap' }}>{thought}</span>
+              )}
+
+              <div style={{
                 position: 'absolute',
                 top: '100%',
                 left: '50%',
@@ -259,11 +345,12 @@ const FoxieAvatar = ({
                 borderWidth: '6px',
                 borderStyle: 'solid',
                 borderColor: 'white transparent transparent transparent'
-            }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+              }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </>
   );
 };
 

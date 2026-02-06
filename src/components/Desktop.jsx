@@ -31,7 +31,7 @@ const Desktop = () => {
   const [inactivityTimer, setInactivityTimer] = useState(null);
   const [focusTime, setFocusTime] = useState(0);
   const [lastAppOpened, setLastAppOpened] = useState(null);
-  
+
   // Foxie state
   const [foxieAwake, setFoxieAwake] = useState(false);
   const [foxieListening, setFoxieListening] = useState(false);
@@ -178,7 +178,7 @@ const Desktop = () => {
     foxieSleepTimerRef.current = setTimeout(() => {
       setFoxieListening(false);
       setFoxieAwake(false);
-    }, 30000);
+    }, 300000); // 5 minutes persistence
   }, []);
 
   // Handle voice wake
@@ -193,17 +193,20 @@ const Desktop = () => {
   // Handle typed wake phrase
   const handleTaskbarCommandSubmit = useCallback(
     (text) => {
-      if (!isFoxieWakePhrase(text)) return;
-      handleFoxieWake(); // Just wake the avatar
+      if (isFoxieWakePhrase(text)) {
+        handleFoxieWake(); // Just wake the avatar
+      } else {
+        addNotification("Try typing 'Hey Foxie' to wake me up! 🦊", 3000);
+      }
     },
-    [handleFoxieWake]
+    [handleFoxieWake, addNotification]
   );
 
   // Handle voice command
   const handleFoxieCommand = useCallback((command) => {
     setLastFoxieCommand(command);
     scheduleFoxieSleep();
-    
+
     // Execute life simulation commands
     switch (command.type) {
       case 'FEED':
@@ -257,85 +260,93 @@ const Desktop = () => {
 
   return (
     <AdaptiveUIProvider appState={appState}>
-    <div className="desktop">
-      {/* Desktop Background */}
-      <div className="desktop-background"></div>
+      <div className="desktop">
+        {/* Desktop Background */}
+        <div className="desktop-background"></div>
 
-      {/* Top Navigation Bar - Replaces Desktop Widgets */}
-      <DesktopTopBar onOpenApp={openWindow} />
+        {/* Top Navigation Bar - Replaces Desktop Widgets */}
+        <DesktopTopBar onOpenApp={openWindow} />
 
-      {/* Desktop HUD - Only for Notifications now (Invisible container) */}
-      <div className="desktop-hud" style={{ pointerEvents: 'none' }}>
-        <Notifications notifications={notifications} />
-      </div>
+        {/* Desktop HUD - Only for Notifications now (Invisible container) */}
+        <div className="desktop-hud" style={{ pointerEvents: 'none' }}>
+          <Notifications notifications={notifications} />
+        </div>
 
-      {/* Windows */}
-      <div className="windows-container">
-        {windows
-          .filter((w) => !w.isMinimized)
-          .map((window) => (
-            <Window
-              key={window.id}
-              id={window.id}
-              title={window.name}
-              position={window.position}
-              noPadding={window.noPadding}
-              onClose={() => closeWindow(window.id)}
-              onMinimize={() => toggleMinimize(window.id)}
-              onFocus={() => bringToFront(window.id)}
-              isActive={activeWindowId === window.id}
-            >
-              {renderAppContent(window.name)}
-            </Window>
-          ))}
-      </div>
+        {/* Windows */}
+        <div className="windows-container">
+          {windows
+            .filter((w) => !w.isMinimized)
+            .map((window) => (
+              <Window
+                key={window.id}
+                id={window.id}
+                title={window.name}
+                position={window.position}
+                noPadding={window.noPadding}
+                onClose={() => closeWindow(window.id)}
+                onMinimize={() => toggleMinimize(window.id)}
+                onFocus={() => bringToFront(window.id)}
+                isActive={activeWindowId === window.id}
+              >
+                {renderAppContent(window.name)}
+              </Window>
+            ))}
+        </div>
 
-      {/* Foxie Avatar - only visible once awakened */}
-      {foxieAwake && (
-        <ErrorBoundary fallback={null}>
-          <FoxieAvatar
-            mood={foxieMood}
-            isAwake={foxieAwake}
-            isListening={foxieListening}
-            lastCommand={lastFoxieCommand}
-            needs={needs}
-            userActivity={userActive ? 'active' : 'idle'}
-          />
-        </ErrorBoundary>
-      )}
+        {/* Foxie Avatar - only visible once awakened */}
+        {foxieAwake && (
+          <ErrorBoundary fallback={null}>
+            <FoxieAvatar
+              mood={foxieMood}
+              isAwake={foxieAwake}
+              isListening={foxieListening}
+              lastCommand={lastFoxieCommand}
+              needs={needs}
+              onInteraction={scheduleFoxieSleep}
+              onCommand={(cmdText) => {
+                // Dynamically import parser to avoid circular deps if any, or just standard import usage
+                import('../utils/foxieCommands').then(({ parseFoxieCommand }) => {
+                  const command = parseFoxieCommand(cmdText);
+                  handleFoxieCommand(command);
+                });
+              }}
+              userActivity={userActive ? 'active' : 'idle'}
+            />
+          </ErrorBoundary>
+        )}
 
-      {/* Voice Control - Logic Only (Invisible when sleeping) */}
-      <FoxieVoiceUI
-        onWake={handleFoxieWake}
-        onCommand={handleFoxieCommand}
-        foxieState={foxieAwake ? 'awake' : 'sleeping'}
-        visible={foxieAwake} /* Only show UI card when awake */
-      />
-
-      {/* Tambo AI Suggestions - Hidden for cleaner UI unless requested */}
-      {/* <TamboUI /> */}
-
-      {/* Start Menu */}
-      {startMenuOpen && (
-        <StartMenu
-          onOpenApp={openWindow}
-          onClose={() => setStartMenuOpen(false)}
+        {/* Voice Control - Logic Only (Invisible when sleeping) */}
+        <FoxieVoiceUI
+          onWake={handleFoxieWake}
+          onCommand={handleFoxieCommand}
+          foxieState={foxieAwake ? 'awake' : 'sleeping'}
+          visible={foxieAwake} /* Only show UI card when awake */
         />
-      )}
 
-      {/* Taskbar */}
-      <Taskbar
-        startMenuOpen={startMenuOpen}
-        onStartClick={() => setStartMenuOpen(!startMenuOpen)}
-        onCommandSubmit={handleTaskbarCommandSubmit}
-        windows={windows}
-        activeWindowId={activeWindowId}
-        onActivateWindow={bringToFront}
-        onToggleMinimize={toggleMinimize}
-        windowCount={windows.length}
-        minimizedCount={windows.filter((w) => w.isMinimized).length}
-      />
-    </div>
+        {/* Tambo AI Suggestions - Hidden for cleaner UI unless requested */}
+        {/* <TamboUI /> */}
+
+        {/* Start Menu */}
+        {startMenuOpen && (
+          <StartMenu
+            onOpenApp={openWindow}
+            onClose={() => setStartMenuOpen(false)}
+          />
+        )}
+
+        {/* Taskbar */}
+        <Taskbar
+          startMenuOpen={startMenuOpen}
+          onStartClick={() => setStartMenuOpen(!startMenuOpen)}
+          onCommandSubmit={handleTaskbarCommandSubmit}
+          windows={windows}
+          activeWindowId={activeWindowId}
+          onActivateWindow={bringToFront}
+          onToggleMinimize={toggleMinimize}
+          windowCount={windows.length}
+          minimizedCount={windows.filter((w) => w.isMinimized).length}
+        />
+      </div>
     </AdaptiveUIProvider>
   );
 };
