@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // Lightweight LLM wrapper for the browser (Vite).
 export type LLMResponse = { text: string; data?: any };
 
@@ -58,7 +59,7 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
     tamboInFlight = true;
 
     try {
-        const res = await fetch('http://localhost:3001/api/ask', {
+        const res = await fetch('/api/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 

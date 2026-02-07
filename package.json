@@ -9,6 +9,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "node backend/server.js",
     "electron:dev": "cross-env ELECTRON_START_URL=http://localhost:5173 electron .",
     "electron:build": "electron-builder"
   },
