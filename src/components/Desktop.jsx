@@ -15,7 +15,6 @@ import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
 import ProductivityDashboard from './ProductivityDashboard';
-import FoxieSideChat from './FoxieSideChat'; // New component
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
 import { isFoxieWakePhrase, onFoxieWake } from '../utils/foxieWake';
 
@@ -40,7 +39,6 @@ const Desktop = () => {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
-  const [chatHistory, setChatHistory] = useState([]); // New state for chat history
   const [pomodoroState, setPomodoroState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
   const foxieSleepTimerRef = useRef(null);
 
@@ -192,7 +190,6 @@ const Desktop = () => {
     setFoxieAwake(true);
     setFoxieListening(true);
     setLastFoxieCommand({ type: 'WAKE' });
-    addNotification('Foxie is listening!', 2000);
     scheduleFoxieSleep();
   }, [addNotification, scheduleFoxieSleep]);
 
@@ -214,85 +211,64 @@ const Desktop = () => {
     setLastFoxieCommand(command);
     scheduleFoxieSleep();
 
-    // Verify command.text exists before adding
-    if (command.text) {
-      setChatHistory(prev => [...prev, { text: command.text, sender: 'user', timestamp: Date.now() }]);
-    }
-
     // Execute life simulation commands
     switch (command.type) {
       case 'FEED':
         feed('premium');
         addNotification('🍖 Feeding Foxie!', 2000);
-        setChatHistory(prev => [...prev, { text: "Yum! Thanks for the food! 🍖", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'DRINK':
         giveWater();
         addNotification('💧 Giving water to Foxie!', 2000);
-        setChatHistory(prev => [...prev, { text: "Slurp! Refreshing! 💧", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'SLEEP':
         rest(5000);
         addNotification('😴 Foxie is sleeping...', 2000);
-        setChatHistory(prev => [...prev, { text: "Goodnight... 😴", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'PLAY':
         play('fetch');
         addNotification('🎮 Playing with Foxie!', 2000);
-        setChatHistory(prev => [...prev, { text: "This is fun! 🎮", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'PRAISE':
       case 'LOVE':
         praise();
         addNotification('💕 Foxie feels loved!', 2000);
-        setChatHistory(prev => [...prev, { text: "I love you too! 💕", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'OPEN_APP':
         openWindow(command.app);
         addNotification(command.text, 2000);
-        setChatHistory(prev => [...prev, { text: `Opening ${command.app}...`, sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'START_TIMER':
         // Immediate visual feedback + open app
         setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
         openWindow('Pomodoro');
         addNotification('⏱️ Starting Pomodoro Timer!', 2000);
-        setChatHistory(prev => [...prev, { text: "Timer started! Focus time! ⏱️", sender: 'foxie', timestamp: Date.now() }]);
         break;
       case 'CHAT':
         addNotification(`🦊 ${command.text}`, 5000);
-        // If the command text from user was just the prompt, we might want a response.
-        // But usually 'CHAT' type implies a response FROM Foxie logic if we had a backend.
-        // For now, let's just echo a generic response if it wasn't a specific command.
-        // Actually, command.text usually contains the USER'S parsed text or a response?
-        // Let's assume command.text here is the response or action description.
-        // Wait, parseFoxieCommand returns { type, text }. 
-        // If type is CHAT, text is likely the user's input.
-        // We need a response generator. For now, pseudo-response:
-        setChatHistory(prev => [...prev, { text: "I hear you! 🦊", sender: 'foxie', timestamp: Date.now() }]);
         break;
       default:
         addNotification(command.text || "I'm not sure how to do that, but I'm learning! 🦊", 3000);
-        setChatHistory(prev => [...prev, { text: "I'm not sure how to do that yet. 🦊", sender: 'foxie', timestamp: Date.now() }]);
     }
   }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep]);
+
+  const handleToggleVoice = useCallback(() => {
+    const nextState = !voiceActive;
+    setVoiceActive(nextState);
+
+    if (nextState) {
+      setFoxieAwake(true);
+      setFoxieListening(true);
+      scheduleFoxieSleep();
+    } else {
+      setFoxieListening(false);
+      // We don't necessarily want to force sleep here, just stop listening
+    }
+  }, [voiceActive, scheduleFoxieSleep, addNotification]);
 
   const handleVoiceError = useCallback((msg) => {
     addNotification(`⚠️ ${msg}`, 4000);
   }, [addNotification]);
-
-  // Voice handlers (extracted for reuse)
-  const handleStartVoice = useCallback(() => {
-    setVoiceActive(true);
-    setFoxieAwake(true);
-    setFoxieListening(true);
-  }, []);
-
-  const handleStopVoice = useCallback(() => {
-    setFoxieListening(false);
-    // Don't set foxieAwake(false) immediately so the user can see/hear the response
-    setVoiceActive(false);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -330,41 +306,10 @@ const Desktop = () => {
           foxieAwake={foxieAwake}
           voiceTranscript={voiceTranscript}
           voiceVisualizer={voiceVisualizer}
-          onStartVoice={handleStartVoice}
-          onStopVoice={handleStopVoice}
         />
 
+        {/* Desktop HUD - Only for Notifications now (Invisible container) */}
         <div className="desktop-hud" style={{ pointerEvents: 'none' }}>
-          <div style={{
-            pointerEvents: 'auto',
-            height: 'calc(100% - 100px)', // Subtracting top bar and taskbar height roughly
-            width: '350px',
-            position: 'absolute',
-            right: 0,
-            top: '50px', // Below top bar
-            zIndex: 1000,
-            boxShadow: '-5px 0 15px rgba(0,0,0,0.1)'
-          }}>
-            <FoxieSideChat
-              chatHistory={chatHistory}
-              onCommandSubmit={(text) => {
-                // Parse and execute
-                import('../utils/foxieCommands').then(async ({ parseFoxieCommand }) => {
-                  const command = await parseFoxieCommand(text);
-                  // Add USER message here if not handled by handleFoxieCommand (which adds based on result)
-                  // Actually handleFoxieCommand adds it based on the passed object.
-                  // We should add the USER text immediately for better UX
-                  // override handleFoxieCommand to NOT add user text? Or just add it there.
-                  // I added it in handleFoxieCommand.
-                  handleFoxieCommand({ ...command, text: text });
-                });
-              }}
-              onStartVoice={handleStartVoice}
-              onStopVoice={handleStopVoice}
-              isListening={foxieListening}
-              isAwake={foxieAwake}
-            />
-          </div>
           <Notifications notifications={notifications} />
         </div>
 
@@ -408,8 +353,6 @@ const Desktop = () => {
                 });
               }}
               userActivity={userActive ? 'active' : 'idle'}
-              onStartVoice={handleStartVoice}
-              onStopVoice={handleStopVoice}
             />
           </ErrorBoundary>
         )}
@@ -448,6 +391,8 @@ const Desktop = () => {
           onToggleMinimize={toggleMinimize}
           windowCount={windows.length}
           minimizedCount={windows.filter((w) => w.isMinimized).length}
+          isVoiceActive={voiceActive}
+          onToggleVoice={handleToggleVoice}
         />
       </div>
     </AdaptiveUIProvider>

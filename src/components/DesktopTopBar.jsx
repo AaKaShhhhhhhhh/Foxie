@@ -47,11 +47,33 @@ const DesktopTopBar = (props) => {
         </nav>
       </div>
 
-
+      <div className="top-bar-center">
+        <AnimatePresence mode="wait">
+          {props.foxieAwake && (
+            <motion.div
+              className="voice-status-indicator"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <div className="top-visualizer">
+                {props.voiceVisualizer?.map((height, i) => (
+                  <div
+                    key={i}
+                    className="top-viz-bar"
+                    style={{ height: `${Math.max(2, height * 16)}px` }}
+                  />
+                ))}
+              </div>
+              <span className="voice-transcript-top">
+                {props.voiceTranscript || "Listening..."}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <div className="top-bar-right">
-        {/* Voice Toggle */}
-
 
         <div className="system-status">
           <div className="status-item">

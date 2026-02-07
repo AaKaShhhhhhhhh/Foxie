@@ -13,8 +13,6 @@ const FoxieAvatar = ({
   lastCommand = null,
   onInteraction,
   onCommand, // Added prop for chat
-  onStartVoice, // New prop for voice trigger
-  onStopVoice, // New prop for voice trigger
   pomodoroState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
 }) => {
   // Position and animation state
@@ -357,18 +355,9 @@ const FoxieAvatar = ({
   const [chatInput, setChatInput] = useState('');
 
   /* Handle Drag Interaction */
-  const handleDragStart = () => {
-    if (onStartVoice) onStartVoice();
-    if (onInteraction) onInteraction();
-    setThought("I am listening...");
-    if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
-  };
-
   const handleDragEnd = () => {
-    if (onStopVoice) onStopVoice();
     // Just trigger interaction to keep awake
     if (onInteraction) onInteraction();
-    setThought(null);
   };
 
   const handleChatSubmit = (e) => {
@@ -419,7 +408,6 @@ const FoxieAvatar = ({
         dragMomentum={false}
         dragElastic={0.2}
         dragConstraints={constraintsRef}
-        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onTap={() => {
           if (!chatMode) {

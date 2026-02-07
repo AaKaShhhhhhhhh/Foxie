@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 
 const Taskbar = ({
   startMenuOpen,
@@ -10,6 +11,8 @@ const Taskbar = ({
   onToggleMinimize,
   windowCount,
   minimizedCount,
+  isVoiceActive,
+  onToggleVoice,
 }) => {
   const [commandText, setCommandText] = useState('');
 
@@ -29,7 +32,36 @@ const Taskbar = ({
         <span className="start-text">Start</span>
       </button>
 
-
+      {/* Search / command */}
+      <div className="taskbar-search">
+        <input
+          className="taskbar-search-input"
+          value={commandText}
+          onChange={(e) => setCommandText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return;
+            const text = commandText;
+            setCommandText('');
+            if (onCommandSubmit) onCommandSubmit(text);
+          }}
+          placeholder="Type 'hey foxie'"
+          aria-label="Taskbar command"
+        />
+        <button
+          className={`taskbar-voice-toggle ${isVoiceActive ? 'active' : ''}`}
+          onClick={onToggleVoice}
+          title={isVoiceActive ? "Turn off Voice Listening" : "Turn on Voice Listening"}
+        >
+          {isVoiceActive ? '🎙️' : '🔇'}
+          {isVoiceActive && (
+            <motion.div
+              className="taskbar-mic-pulse"
+              animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            />
+          )}
+        </button>
+      </div>
 
       {/* App Buttons */}
       <div className="taskbar-apps">
