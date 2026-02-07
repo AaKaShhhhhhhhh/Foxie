@@ -1866,7 +1866,7 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.08);
   min-width: 140px;
-  max-width: min(320px, calc(100vw - 32px));
+  max-width: min(280px, calc(100vw - 32px));
   max-height: 40vh;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
@@ -1914,4 +1914,11 @@ body {
 .foxie-dialogue-input:focus {
   border-color: rgba(0, 120, 212, 0.45);
   box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+}
+
+@media (max-width: 480px) {
+  .foxie-dialogue-bubble {
+    max-width: calc(100vw - 24px);
+    min-width: 0;
+  }
 }

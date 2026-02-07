@@ -27,6 +27,7 @@ const FoxieAvatar = ({
   // Refs
   const thoughtTimeoutRef = useRef(null);
   const wanderIntervalRef = useRef(null);
+  const pomodoroActiveRef = useRef(false);
 
   /**
    * React to voice commands
@@ -202,10 +203,15 @@ const FoxieAvatar = ({
    */
   useEffect(() => {
     if (isPomodoroMode) {
+      const isEnteringPomodoro = !pomodoroActiveRef.current;
+      pomodoroActiveRef.current = true;
+
       const syncTimeout = setTimeout(() => {
-        // Move to side and look like a clock
-        setTargetPosition({ x: 92, y: 50 });
-        setCurrentAnimation('pomodoro');
+        if (isEnteringPomodoro) {
+          // Move to side and look like a clock
+          setTargetPosition({ x: 92, y: 50 });
+          setCurrentAnimation('pomodoro');
+        }
         
         // Initial encouragement
         setThought(
@@ -221,7 +227,9 @@ const FoxieAvatar = ({
         clearTimeout(syncTimeout);
         clearTimeout(clearThoughtTimeout);
       };
-    } else if (currentAnimation === 'pomodoro') {
+    } else if (pomodoroActiveRef.current) {
+      pomodoroActiveRef.current = false;
+
       const resetTimeout = setTimeout(() => {
         // Reset when stopping
         setCurrentAnimation('idle');
