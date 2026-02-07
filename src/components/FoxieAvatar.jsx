@@ -202,24 +202,33 @@ const FoxieAvatar = ({
    */
   useEffect(() => {
     if (isPomodoroMode) {
-      // Move to side and look like a clock
-      setTargetPosition({ x: 92, y: 50 });
-      setCurrentAnimation('pomodoro');
-      
-      // Initial encouragement
-      setThought(
-        pomodoroState.sessionType === 'work' 
-          ? "Focus time! I'll keep watch. ⏱️" 
-          : "Relax! Take a deep breath. ☕"
-      );
-      
+      const syncTimeout = setTimeout(() => {
+        // Move to side and look like a clock
+        setTargetPosition({ x: 92, y: 50 });
+        setCurrentAnimation('pomodoro');
+
+        // Initial encouragement
+        setThought(
+          pomodoroState.sessionType === 'work'
+            ? "Focus time! I'll keep watch. ⏱️"
+            : "Relax! Take a deep breath. ☕"
+        );
+      }, 0);
+
       // Clear thought after 5s
-      const timeout = setTimeout(() => setThought(null), 5000);
-      return () => clearTimeout(timeout);
+      const clearThoughtTimeout = setTimeout(() => setThought(null), 5000);
+      return () => {
+        clearTimeout(syncTimeout);
+        clearTimeout(clearThoughtTimeout);
+      };
     } else if (currentAnimation === 'pomodoro') {
-      // Reset when stopping
-      setCurrentAnimation('idle');
-      setTargetPosition({ x: 80, y: 70 });
+      const resetTimeout = setTimeout(() => {
+        // Reset when stopping
+        setCurrentAnimation('idle');
+        setTargetPosition({ x: 80, y: 70 });
+      }, 0);
+
+      return () => clearTimeout(resetTimeout);
     }
   }, [isPomodoroMode, pomodoroState.sessionType]);
 
@@ -233,8 +242,15 @@ const FoxieAvatar = ({
     
     // Only react on exact minute boundaries to avoid spam, and only sometimes
     if (secsLeft === 0 && minsLeft > 0 && minsLeft % 5 === 0) {
-       setThought(`You're doing great! ${minsLeft}m to go! 🦊`);
-       setTimeout(() => setThought(null), 4000);
+      const encouragementTimeout = setTimeout(() => {
+        setThought(`You're doing great! ${minsLeft}m to go! 🦊`);
+      }, 0);
+      const clearThoughtTimeout = setTimeout(() => setThought(null), 4000);
+
+      return () => {
+        clearTimeout(encouragementTimeout);
+        clearTimeout(clearThoughtTimeout);
+      };
     }
   }, [pomodoroState.timeLeft, isPomodoroMode]);
 
