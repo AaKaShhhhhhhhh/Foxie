@@ -66,9 +66,10 @@ export const parseFoxieCommand = async (transcript) => {
     const hasCloseVerb = /\b(close|exit|quit)\b/.test(text);
     const hasStopVerb = /\bstop\b/.test(text);
     const closeContextWord = /\b(app|window|this|it|current)\b/.test(text);
+    const appContextWord = /\b(app|application|window|tab)\b/.test(text);
     const stopIsLikelyClose =
         hasStopVerb &&
-        (closeContextWord || Object.keys(appMap).some((key) => text.includes(key)));
+        (appContextWord || Object.keys(appMap).some((key) => text.includes(key)));
 
     if (hasCloseVerb || stopIsLikelyClose) {
         for (const [key, appName] of Object.entries(appMap)) {
@@ -88,7 +89,7 @@ export const parseFoxieCommand = async (transcript) => {
         }
 
         if (closeContextWord) {
-            return { type: 'CLOSE_APP', text: 'Closing current window...' };
+            return { type: 'CLOSE_APP', app: null, text: 'Closing current window...' };
         }
     }
 

@@ -126,12 +126,12 @@ const Desktop = () => {
 
   // Keep `activeWindowId` in sync when windows are closed.
   useEffect(() => {
-    if (activeWindowId == null) return;
-    if (windows.some((w) => w.id === activeWindowId)) return;
-
-    const nextActive = windows.length ? windows[windows.length - 1].id : null;
-    setActiveWindowId(nextActive);
-  }, [windows, activeWindowId]);
+    setActiveWindowId((currentActive) => {
+      if (currentActive == null) return currentActive;
+      if (windows.some((w) => w.id === currentActive)) return currentActive;
+      return windows.length ? windows[windows.length - 1].id : null;
+    });
+  }, [windows]);
 
   // Toggle window minimization
   const toggleMinimize = useCallback((id) => {
@@ -250,6 +250,7 @@ const Desktop = () => {
       case 'CLOSE_APP': {
         const normalize = (value) => (value ?? '').toString().toLowerCase().trim();
         const query = normalize(command.app);
+        const queryWords = query.split(/\s+/).filter(Boolean);
 
         const activeWindow = windows.find((w) => w.id === activeWindowId);
 
@@ -259,7 +260,9 @@ const Desktop = () => {
         } else {
           const matches = windows.filter((w) => {
             const name = normalize(w.name);
-            return name === query || name.includes(query) || query.includes(name);
+            if (name === query || name.includes(query)) return true;
+            const nameWords = name.split(/\s+/).filter(Boolean);
+            return nameWords.some((word) => queryWords.includes(word));
           });
 
           windowToClose = matches.find((w) => w.id === activeWindowId) ?? matches[matches.length - 1] ?? null;
