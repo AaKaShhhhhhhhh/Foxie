@@ -37,6 +37,15 @@ const FoxieVoiceUI = ({
   const awakeTimeoutRef = useRef(null);
   const streamRef = useRef(null);
 
+  // Stability refs for Patch 1 & 2
+  const processingFinalRef = useRef(false);
+  const lastFinalTranscriptRef = useRef("");
+  const lastFinalAtRef = useRef(0);
+  const lastRestartAtRef = useRef(0);
+
+  const FINAL_DEDUPE_MS = 1500;
+  const RESTART_COOLDOWN_MS = 800;
+
   // Check browser support
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -156,27 +165,53 @@ const FoxieVoiceUI = ({
 
       // Process commands
       if (effectiveAwake && isFinal) {
-        // Strip wake word for cleaner processing if present
+        // Strip wake word
         let cleanTranscript = transcript;
         wakeWords.forEach(word => {
-            if (cleanTranscript.startsWith(word)) {
-                cleanTranscript = cleanTranscript.replace(word, '').trim();
-            }
+          if (cleanTranscript.startsWith(word)) {
+            cleanTranscript = cleanTranscript.replace(word, '').trim();
+          }
         });
 
-        console.log('FoxieVoiceUI: Parsing command from:', cleanTranscript || transcript);
-        const command = await parseFoxieCommand(cleanTranscript || transcript);
-        
-        if (command && command.type !== 'WAKE') {
-          console.log('FoxieVoiceUI: Command recognized:', command.type);
-          setLastCommand(command);
-          if (onCommand) onCommand(command, transcript);
-          
-          if (awakeTimeoutRef.current) clearTimeout(awakeTimeoutRef.current);
-          awakeTimeoutRef.current = setTimeout(() => {
-            setIsAwake(false);
-            isAwakeRef.current = false;
-          }, 30000);
+        const normalized = (cleanTranscript || transcript).replace(/\s+/g, " ").trim();
+        if (!normalized) return;
+
+        // 1) drop duplicates (same final repeated)
+        const now = Date.now();
+        if (
+          normalized === lastFinalTranscriptRef.current &&
+          now - lastFinalAtRef.current < FINAL_DEDUPE_MS
+        ) {
+          console.log("FoxieVoiceUI: dropping duplicate FINAL:", normalized);
+          return;
+        }
+        lastFinalTranscriptRef.current = normalized;
+        lastFinalAtRef.current = now;
+
+        // 2) prevent overlapping async parse/send
+        if (processingFinalRef.current) {
+          console.log("FoxieVoiceUI: ignoring FINAL while processing previous command");
+          return;
+        }
+
+        processingFinalRef.current = true;
+        try {
+          console.log("FoxieVoiceUI: Parsing command from:", normalized);
+          const command = await parseFoxieCommand(normalized);
+
+          if (command && command.type !== "WAKE") {
+            console.log("FoxieVoiceUI: Command recognized:", command.type);
+            setLastCommand(command);
+            onCommand?.(command, normalized);
+
+            if (awakeTimeoutRef.current) clearTimeout(awakeTimeoutRef.current);
+            awakeTimeoutRef.current = setTimeout(() => {
+              setIsAwake(false);
+              isAwakeRef.current = false;
+            }, 30000);
+          }
+        } finally {
+          processingFinalRef.current = false;
         }
       }
     };
@@ -186,8 +221,8 @@ const FoxieVoiceUI = ({
       if (event.error === 'network') {
         if (onError) onError('Voice error: Check internet connection');
       }
-      // Retry errors
-      const retryErrors = ['network', 'no-speech', 'audio-capture'];
+      // Retry errors (Removed no-speech to stop aggressive spam)
+      const retryErrors = ['network', 'audio-capture'];
       if (retryErrors.includes(event.error)) {
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
@@ -199,9 +234,19 @@ const FoxieVoiceUI = ({
 
     recognition.onend = () => {
       console.log('FoxieVoiceUI: Recognition ended. Restarting?', isListeningRef.current);
-      if (isListeningRef.current && recognitionRef.current) {
-        try { recognitionRef.current.start(); } catch (e) {}
-      }
+      if (!isListeningRef.current || !recognitionRef.current) return;
+
+      const now = Date.now();
+      if (now - lastRestartAtRef.current < RESTART_COOLDOWN_MS) return;
+      lastRestartAtRef.current = now;
+
+      setTimeout(() => {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          console.log('FoxieVoiceUI: Restart failed:', e);
+        }
+      }, 250);
     };
 
     return recognition;
@@ -276,7 +321,6 @@ const FoxieVoiceUI = ({
 
   // Sync listening state with parent
   useEffect(() => {
-    console.log('FoxieVoiceUI: listening prop changed:', listening, 'isListening:', isListening);
     if (listening && !isListening) {
       console.log('FoxieVoiceUI: Starting listening via prop sync');
       startListening();

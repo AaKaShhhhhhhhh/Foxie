@@ -248,6 +248,11 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
             const text = command.data || transcript;
             const tamboResponse = await askTambo(text, tamboThreadId);
             
+            if (tamboResponse.skipped) {
+                console.log("Chat request skipped (in-flight)");
+                return;
+            }
+
             if (tamboResponse.threadId) {
                 setTamboThreadId(tamboResponse.threadId);
             }
@@ -379,11 +384,13 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
       }
     };
 
-    // Query Tambo every 30 seconds during low activity
+    // Query Tambo periodically during low activity (DEACTIVATED: using voice commands only)
+    /*
     if (!userActive) {
       const timer = setInterval(queryTambo, 30000);
       return () => clearInterval(timer);
     }
+    */
   }, [userActive, foxMood, personality, onSpeak, transitionBehavior]);
 
   /**

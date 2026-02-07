@@ -22,19 +22,13 @@ export async function getTamboResponse(prompt, context = {}) {
 }
 
 /**
- * Get reasoning about user mood/state
+ * Get reasoning about user mood/state (Simplified to take user command)
+ * @param {string} command - User voice command
  * @param {object} state - Current app state
  * @returns {Promise<object>} - Reasoning result
  */
-export async function reasonAboutState(state) {
-  const prompt = `Analyze the following user state and provide mood insight:
-    User Active: ${state.userActive}
-    Windows Open: ${state.windowsOpen}
-    Last Activity: ${state.lastActivity || 'recent'}
-    
-    Provide a brief, one-sentence insight as Foxie.`;
-
-  const text = await getTamboResponse(prompt, state);
+export async function reasonAboutState(command, state = {}) {
+  const text = await getTamboResponse(command, state);
   return { insight: text };
 }
 

@@ -103,9 +103,9 @@ export const AdaptiveUIProvider = ({ children, appState = EMPTY_APP_STATE }) => 
       setAdaptiveUI(newAdaptiveUI);
     }
 
-    // Trigger Tambo analysis periodically
-    analyzeStateWithTambo();
-  }, [appState, tamboInsight, analyzeStateWithTambo]);
+    // Trigger Tambo analysis ONLY if requested (removed automatic periodic analysis)
+    // analyzeStateWithTambo();
+  }, [appState, tamboInsight]);
 
   const contextValue = {
     adaptiveUI,

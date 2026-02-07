@@ -118,6 +118,16 @@ app.post('/api/ask', async (req, res) => {
     
     console.log('Total raw stream buffer length:', textBuffer.length);
 
+    // Check for explicit streaming errors in the buffer
+    if (textBuffer.includes("error: Error in streaming response")) {
+        console.error("Tambo Stream Error detected in buffer:", textBuffer);
+        return res.status(502).json({
+            error: "Tambo streaming failed",
+            details: textBuffer.slice(0, 500),
+            threadId,
+        });
+    }
+
 
 console.log("FULL SSE RAW:\n", textBuffer);
     // console.log('Received raw stream buffer:', textBuffer);
@@ -135,21 +145,48 @@ console.log("FULL SSE RAW:\n", textBuffer);
     
     // Attempt to parse SSE events if present
     const lines = textBuffer.split('\n');
+    const messageMap = new Map(); // id -> text
+    let additiveText = "";
+
     for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
             try {
-                const jsonStr = line.substring(6);
-                if (jsonStr.trim() === '[DONE]') continue;
+                const jsonStr = trimmed.substring(6).trim();
+                if (jsonStr === '[DONE]') continue;
+                
                 const data = JSON.parse(jsonStr);
-                // Adjust based on Tambo's stream format (often data.text or data.delta.content)
-                if (data.text) fullText += data.text;
-                else if (data.content) fullText += data.content;
-                else if (data.delta?.content) fullText += data.delta.content; // OpenAI style
+                
+                // Tambo specific structure: responseMessageDto.content or component.message
+                // These are often cumulative updates for a specific message ID.
+                const dto = data.responseMessageDto;
+                const messageId = dto?.id || data.id;
+                
+                let currentChunkText = "";
+                if (dto?.content && Array.isArray(dto.content)) {
+                    currentChunkText = dto.content.map(c => c.text || "").join("");
+                } else if (data.component?.message) {
+                    currentChunkText = data.component.message;
+                }
+
+                if (messageId && currentChunkText) {
+                    // Update the latest content for this message ID (cumulative)
+                    messageMap.set(messageId, currentChunkText);
+                } else {
+                    // Fallback to additive parsing for delta streams
+                    const deltaText = data.text || data.content || data.delta?.content;
+                    if (deltaText) {
+                        additiveText += deltaText;
+                    }
+                }
             } catch (e) {
-                // Ignore parse errors for intermediate chunks
+                // Ignore parse errors for intermediate or malformed chunks
             }
         }
     }
+
+    // Combine cumulative message contents with any additive deltas
+    fullText = Array.from(messageMap.values()).join("") + additiveText;
 
     // If no SSE parsing worked (maybe it's not SSE but just chunked text), use the whole buffer
     if (!fullText && textBuffer.length > 0) {
@@ -162,7 +199,7 @@ console.log("FULL SSE RAW:\n", textBuffer);
          }
     }
 
-    const assistantMessage = fullText || "I received a response but couldn't parse it.";
+    const assistantMessage = fullText.trim() || "I received a response but couldn't parse it.";
 
     res.json({
       response: assistantMessage,

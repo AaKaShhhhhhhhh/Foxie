@@ -253,6 +253,10 @@ const Desktop = () => {
     }
   }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep]);
 
+  const handleVoiceError = useCallback((msg) => {
+    addNotification(`⚠️ ${msg}`, 4000);
+  }, [addNotification]);
+
   useEffect(() => {
     return () => {
       if (foxieSleepTimerRef.current) {
@@ -357,7 +361,7 @@ const Desktop = () => {
           onCommand={handleFoxieCommand}
           onTranscriptUpdate={setVoiceTranscript}
           onVisualizerUpdate={setVoiceVisualizer}
-          onError={(msg) => addNotification(`⚠️ ${msg}`, 4000)}
+          onError={handleVoiceError}
           foxieState={foxieAwake ? 'awake' : 'sleeping'}
           visible={false} /* Hide the floating card */
           listening={voiceActive} /* Persistent listening if enabled */
