@@ -15,6 +15,7 @@ import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
 import ProductivityDashboard from './ProductivityDashboard';
+import PreviewWindow from './PreviewWindow';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
 import { isFoxieWakePhrase, onFoxieWake } from '../utils/foxieWake';
 
@@ -47,6 +48,24 @@ const Desktop = () => {
   useEffect(() => {
     windowsRef.current = windows;
   }, [windows]);
+
+  // Preview Window state (AI-controlled)
+  const [previewWindow, setPreviewWindow] = useState({
+    isOpen: false,
+    title: 'Preview',
+    mode: 'markdown',
+    markdown: '',
+    url: '',
+  });
+
+  // Handler to update preview window from AI or voice commands
+  const updatePreviewWindow = useCallback((updates) => {
+    setPreviewWindow(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const closePreviewWindow = useCallback(() => {
+    setPreviewWindow(prev => ({ ...prev, isOpen: false }));
+  }, []);
 
   // Life simulation
   const {
@@ -270,7 +289,23 @@ const Desktop = () => {
         addNotification('⏱️ Starting Pomodoro Timer!', 2000);
         break;
       case 'CHAT':
-        addNotification(`🦊 ${command.text}`, 5000);
+        // Route long responses to PreviewWindow, short ones to notification
+        const LONG_RESPONSE_THRESHOLD = 100; // characters
+        const responseText = command.text || '';
+        
+        if (responseText.length > LONG_RESPONSE_THRESHOLD) {
+          // Open PreviewWindow with the full response
+          setPreviewWindow({
+            isOpen: true,
+            title: '🦊 Foxie Says',
+            mode: 'markdown',
+            markdown: responseText,
+            url: '',
+          });
+          addNotification('📝 See details in window!', 3000);
+        } else {
+          addNotification(`🦊 ${responseText}`, 5000);
+        }
         break;
       default:
         addNotification(command.text || "I'm not sure how to do that, but I'm learning! 🦊", 3000);
@@ -396,6 +431,17 @@ const Desktop = () => {
 
         {/* Tambo AI Suggestions - Hidden for cleaner UI unless requested */}
         {/* <TamboUI /> */}
+
+        {/* Preview Window (AI-controlled) */}
+        <PreviewWindow
+          isOpen={previewWindow.isOpen}
+          title={previewWindow.title}
+          mode={previewWindow.mode}
+          markdown={previewWindow.markdown}
+          url={previewWindow.url}
+          onClose={closePreviewWindow}
+          onPositionChange={(pos) => setPreviewWindow(prev => ({ ...prev, ...pos }))}
+        />
 
         {/* Start Menu */}
         {startMenuOpen && (

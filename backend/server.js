@@ -216,6 +216,53 @@ console.log("FULL SSE RAW:\n", textBuffer);
   }
 });
 
+// ==================== SEARCH TOOLS ====================
+
+import { webSearch } from './tools/webSearch.js';
+import { youtubeSearch } from './tools/youtubeSearch.js';
+
+/**
+ * Web Search Endpoint
+ * POST /api/tools/web_search
+ * Body: { query: string }
+ */
+app.post('/api/tools/web_search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+    
+    console.log('Web search request:', query);
+    const results = await webSearch(query);
+    res.json(results);
+  } catch (error) {
+    console.error('Web search error:', error);
+    res.status(500).json({ error: 'Search failed', details: error.message });
+  }
+});
+
+/**
+ * YouTube Search Endpoint
+ * POST /api/tools/youtube_search
+ * Body: { query: string }
+ */
+app.post('/api/tools/youtube_search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+    
+    console.log('YouTube search request:', query);
+    const result = await youtubeSearch(query);
+    res.json(result);
+  } catch (error) {
+    console.error('YouTube search error:', error);
+    res.status(500).json({ error: 'Search failed', details: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
