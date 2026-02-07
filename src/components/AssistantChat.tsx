@@ -28,7 +28,7 @@ export default function AssistantChat() {
     setMessages(prev => [...prev, { role: 'user', text }]);
     setInput('');
     loadingRef.current = true;
-    const res = await callLLM(text, { model: 'gpt-4o-mini' });
+    const res = await callLLM(text);
     loadingRef.current = false;
     setMessages(prev => [...prev, { role: 'assistant', text: res.text }]);
   };

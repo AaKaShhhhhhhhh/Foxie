@@ -123,7 +123,15 @@ const FoxieAvatar = ({
       },
       CHAT: () => {
         setCurrentAnimation('curious');
-        setThought('Hmm, interesting! 💭');
+        if (lastCommand?.text) {
+          const clipped =
+            lastCommand.text.length > 200
+              ? `${lastCommand.text.slice(0, 197)}...`
+              : lastCommand.text;
+          setThought(clipped);
+        } else {
+          setThought('Hmm, interesting! 💭');
+        }
       },
       OPEN_APP: () => {
          // "Float" up briefly
