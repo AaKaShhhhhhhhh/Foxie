@@ -106,13 +106,23 @@ app.whenReady().then(() => {
         'https://api.tambo.co';
       const endpoint = `${String(baseUrl).replace(/\/$/, '')}/threads/${encodeURIComponent(threadId)}/advance`;
 
+      let tamboText = prompt;
+      if (!tamboText && Array.isArray(payload?.messages) && payload.messages.length) {
+        const lastUser = [...payload.messages]
+          .reverse()
+          .find((m) => m && m.role === 'user' && typeof m.content === 'string');
+        if (lastUser) tamboText = lastUser.content;
+      }
+
+      if (!tamboText) return { error: 'No prompt provided' };
+
       const additionalContext =
         payload?.context && typeof payload.context === 'object' ? payload.context : undefined;
 
       const body = {
         messageToAppend: {
           role: 'user',
-          content: [{ type: 'text', text: prompt }],
+          content: [{ type: 'text', text: tamboText }],
           ...(additionalContext ? { additionalContext } : {}),
         },
       };
