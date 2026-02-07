@@ -287,22 +287,21 @@ const Desktop = () => {
         <div className="desktop-background"></div>
 
         {/* Top Navigation Bar - Replaces Desktop Widgets */}
-        <DesktopTopBar 
-          onOpenApp={openWindow} 
+        <DesktopTopBar
+          onOpenApp={openWindow}
           isVoiceActive={voiceActive}
           foxieAwake={foxieAwake}
           voiceTranscript={voiceTranscript}
           voiceVisualizer={voiceVisualizer}
-          onToggleVoice={() => {
-             const newState = !voiceActive;
-             setVoiceActive(newState);
-             addNotification(newState ? '🎙️ Voice Control Enabled' : '🔇 Voice Control Disabled', 2000);
-             // If disabling, ensure sleeping to stop mic
-             if (!newState) {
-                setFoxieListening(false);
-                setFoxieAwake(false);
-                setVoiceTranscript('');
-             }
+          onStartVoice={() => {
+            setVoiceActive(true);
+            setFoxieAwake(true);
+            setFoxieListening(true);
+          }}
+          onStopVoice={() => {
+            setFoxieListening(false);
+            // Don't set foxieAwake(false) immediately so the user can see/hear the response
+            setVoiceActive(false);
           }}
         />
 
