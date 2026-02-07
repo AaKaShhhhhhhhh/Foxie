@@ -66,10 +66,12 @@ VITE_TAMBO_API_KEY=your_tambo_api_key_here
 VITE_TAMBO_API_ENDPOINT=https://api.tambo.ai/v1
 VITE_LLM_PROVIDER=tambo
 
-# Optional (OpenAI)
-VITE_OPENAI_API_KEY=your_openai_api_key_here
-VITE_LLM_PROVIDER=openai
+# OR: OpenAI
+# VITE_OPENAI_API_KEY=your_openai_api_key_here
+# VITE_LLM_PROVIDER=openai
 ```
+
+Note: for Electron (`npm run electron:dev`), the main process also loads `.env.local` / `.env` and supports non-`VITE_` aliases like `TAMBO_API_KEY`, `OPENAI_API_KEY`, `LLM_API_KEY`, and `LLM_PROVIDER`.
 
 3. **Start Development Server**:
 ```bash

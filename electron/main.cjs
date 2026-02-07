@@ -2,23 +2,18 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Electron main doesn't automatically load Vite-style `.env.local` files.
 function loadEnvFromProjectRoot() {
-  try {
-    const dotenv = require('dotenv');
-    const root = path.join(__dirname, '..');
+  const root = path.join(__dirname, '..');
+  const dotenv = require('dotenv');
 
-    for (const filename of ['.env.local', '.env']) {
-      const envPath = path.join(root, filename);
-      if (!fs.existsSync(envPath)) continue;
+  for (const filename of ['.env.local', '.env']) {
+    const envPath = path.join(root, filename);
+    if (!fs.existsSync(envPath)) continue;
 
-      dotenv.config({ path: envPath, override: false });
-    }
-  } catch {
-    // Ignore missing optional dependency / env files.
+    dotenv.config({ path: envPath, override: true });
   }
 }
-
-loadEnvFromProjectRoot();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -46,6 +41,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  loadEnvFromProjectRoot();
   createWindow();
 
   app.on('activate', () => {
@@ -63,12 +59,13 @@ app.whenReady().then(() => {
         ? process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || sharedKey
         : process.env.TAMBO_API_KEY || process.env.VITE_TAMBO_API_KEY || sharedKey;
 
-    if (!key) return { error: 'LLM API key not configured on host' };
+    if (!key) return { error: 'LLM API key not configured on host', errorCode: 'NO_API_KEY' };
 
     const sharedBaseUrl =
+      process.env.LLM_API_ENDPOINT ||
       process.env.LLM_BASE_URL ||
-      process.env.VITE_LLM_BASE_URL ||
       process.env.VITE_LLM_API_ENDPOINT ||
+      process.env.VITE_LLM_BASE_URL ||
       '';
 
     const baseUrl =

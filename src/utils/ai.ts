@@ -2,17 +2,21 @@
 export type LLMResponse = { text: string; data?: any };
 
 const provider = (import.meta.env.VITE_LLM_PROVIDER || 'tambo') as string;
+const sharedKey = (import.meta.env.VITE_LLM_API_KEY || '') as string;
 const key = (
-  import.meta.env.VITE_LLM_API_KEY ||
-  import.meta.env.VITE_TAMBO_API_KEY ||
-  import.meta.env.VITE_OPENAI_API_KEY ||
-  ''
+  provider === 'openai'
+    ? import.meta.env.VITE_OPENAI_API_KEY || sharedKey
+    : import.meta.env.VITE_TAMBO_API_KEY || sharedKey
 ) as string;
+
+const sharedBaseUrl = (
+  import.meta.env.VITE_LLM_API_ENDPOINT || import.meta.env.VITE_LLM_BASE_URL || ''
+) as string;
+
 const baseUrl = (
-  import.meta.env.VITE_TAMBO_API_ENDPOINT ||
-  import.meta.env.VITE_LLM_API_ENDPOINT ||
-  import.meta.env.VITE_LLM_BASE_URL ||
-  (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1')
+  provider === 'openai'
+    ? sharedBaseUrl || 'https://api.openai.com/v1'
+    : import.meta.env.VITE_TAMBO_API_ENDPOINT || sharedBaseUrl || 'https://api.tambo.ai/v1'
 ) as string;
 
 export async function callLLM(prompt: string, options: any = {}): Promise<LLMResponse> {
@@ -32,7 +36,9 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
 
       if (result?.error) {
         console.error('LLM request failed:', result.error);
-        if (result.error !== 'LLM API key not configured on host' || !key) {
+        if (result.errorCode === 'NO_API_KEY' && key) {
+          // Fall through to direct fetch.
+        } else {
           return { text: `Echo: ${prompt}`, data: result };
         }
       } else {
@@ -50,13 +56,13 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
 
   if (!key) {
     console.warn(
-      'LLM API key not set. Set VITE_LLM_API_KEY (or VITE_TAMBO_API_KEY / VITE_OPENAI_API_KEY) in .env.local.'
+      `LLM API key not set for the browser (provider="${provider}"). Set VITE_LLM_API_KEY (or VITE_TAMBO_API_KEY / VITE_OPENAI_API_KEY) in .env.local.`
     );
     return { text: `Echo: ${prompt}` };
   }
 
   try {
-    const endpoint = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+    const endpoint = `${String(baseUrl).replace(/\/$/, '')}/chat/completions`;
     
     const body = {
       model: options.model || (provider === 'tambo' ? 'gpt-5.2' : 'gpt-4o-mini'),
