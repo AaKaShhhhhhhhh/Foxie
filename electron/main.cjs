@@ -1,5 +1,24 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const fs = require('node:fs');
 const path = require('node:path');
+
+function loadEnvFromProjectRoot() {
+  try {
+    const dotenv = require('dotenv');
+    const root = path.join(__dirname, '..');
+
+    for (const filename of ['.env.local', '.env']) {
+      const envPath = path.join(root, filename);
+      if (!fs.existsSync(envPath)) continue;
+
+      dotenv.config({ path: envPath, override: false });
+    }
+  } catch {
+    // Ignore missing optional dependency / env files.
+  }
+}
+
+loadEnvFromProjectRoot();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -37,18 +56,23 @@ app.whenReady().then(() => {
 
   // LLM proxy handler - simple fetch using environment LLM_API_KEY
   ipcMain.handle('invoke-llm', async (_ev, payload) => {
-    const provider = process.env.LLM_PROVIDER || 'tambo';
+    const provider = process.env.LLM_PROVIDER || process.env.VITE_LLM_PROVIDER || 'tambo';
     const key =
       process.env.TAMBO_API_KEY ||
+      process.env.VITE_TAMBO_API_KEY ||
       process.env.LLM_API_KEY ||
+      process.env.VITE_LLM_API_KEY ||
       process.env.OPENAI_API_KEY ||
+      process.env.VITE_OPENAI_API_KEY ||
       '';
 
     if (!key) return { error: 'LLM API key not configured on host' };
 
     const baseUrl =
       process.env.TAMBO_API_ENDPOINT ||
+      process.env.VITE_TAMBO_API_ENDPOINT ||
       process.env.LLM_BASE_URL ||
+      process.env.VITE_LLM_BASE_URL ||
       (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1');
 
     try {

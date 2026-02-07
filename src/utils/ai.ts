@@ -3,12 +3,14 @@ export type LLMResponse = { text: string; data?: any };
 
 const provider = (import.meta.env.VITE_LLM_PROVIDER || 'tambo') as string;
 const key = (
+  import.meta.env.VITE_LLM_API_KEY ||
   import.meta.env.VITE_TAMBO_API_KEY ||
   import.meta.env.VITE_OPENAI_API_KEY ||
   ''
 ) as string;
 const baseUrl = (
   import.meta.env.VITE_TAMBO_API_ENDPOINT ||
+  import.meta.env.VITE_LLM_API_ENDPOINT ||
   import.meta.env.VITE_LLM_BASE_URL ||
   (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1')
 ) as string;
@@ -30,14 +32,14 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
 
       if (result?.error) {
         console.error('LLM request failed:', result.error);
-        return { text: `Echo: ${prompt}`, data: result };
+        if (!key) return { text: `Echo: ${prompt}`, data: result };
+      } else {
+        const json = result?.data ?? result;
+        const text =
+          json?.choices?.[0]?.message?.content || json?.response || JSON.stringify(json);
+
+        return { text, data: json };
       }
-
-      const json = result?.data ?? result;
-      const text =
-        json?.choices?.[0]?.message?.content || json?.response || JSON.stringify(json);
-
-      return { text, data: json };
     } catch (error) {
       console.error('LLM request failed:', error);
       return { text: `Echo: ${prompt}` };
@@ -45,7 +47,9 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
   }
 
   if (!key) {
-    console.warn('LLM API key not set. Returning canned response.');
+    console.warn(
+      'LLM API key not set. Set VITE_TAMBO_API_KEY (or VITE_OPENAI_API_KEY / VITE_LLM_API_KEY) in .env.local.'
+    );
     return { text: `Echo: ${prompt}` };
   }
 

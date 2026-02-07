@@ -61,12 +61,15 @@ cp .env.example .env.local
 
 Edit `.env.local`:
 ```
-VITE_CHARLIE_API_KEY=your_charlie_api_key_here
-VITE_CHARLIE_API_ENDPOINT=https://api.charlie-ai.com/v1
-VITE_TAMBO_API_KEY=your_tambo_api_key_here (optional)
-```
+# Recommended (Tambo)
+VITE_TAMBO_API_KEY=your_tambo_api_key_here
+VITE_TAMBO_API_ENDPOINT=https://api.tambo.ai/v1
+VITE_LLM_PROVIDER=tambo
 
-**Get your Charlie API key**: https://charlie-ai.com
+# Optional (OpenAI)
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+VITE_LLM_PROVIDER=openai
+```
 
 3. **Start Development Server**:
 ```bash
