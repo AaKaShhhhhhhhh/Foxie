@@ -2,15 +2,17 @@
 export type LLMResponse = { text: string; data?: any };
 
 const provider = (import.meta.env.VITE_LLM_PROVIDER || 'tambo') as string;
+const proxyUrl = (import.meta.env.VITE_LLM_PROXY_URL || '/ask') as string;
+
 const key = (
-  import.meta.env.VITE_TAMBO_API_KEY ||
   import.meta.env.VITE_OPENAI_API_KEY ||
+  import.meta.env.VITE_TAMBO_API_KEY ||
   ''
 ) as string;
+
 const baseUrl = (
-  import.meta.env.VITE_TAMBO_API_ENDPOINT ||
   import.meta.env.VITE_LLM_BASE_URL ||
-  (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1')
+  (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.co')
 ) as string;
 
 export async function callLLM(prompt: string, options: any = {}): Promise<LLMResponse> {
@@ -26,6 +28,7 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
         messages: options.messages,
         temperature: options.temperature,
         max_tokens: options.max_tokens,
+        context: options.context,
       });
 
       if (result?.error) {
@@ -34,6 +37,32 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
       }
 
       const json = result?.data ?? result;
+      const text =
+        json?.choices?.[0]?.message?.content || json?.response || JSON.stringify(json);
+
+      return { text, data: json };
+    } catch (error) {
+      console.error('LLM request failed:', error);
+      return { text: `Echo: ${prompt}` };
+    }
+  }
+
+  if (provider === 'tambo') {
+    try {
+      const res = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt, context: options.context }),
+      });
+
+      const raw = await res.text();
+      const json: any = raw ? JSON.parse(raw) : null;
+
+      if (!res.ok) {
+        console.error('LLM request failed:', res.status, res.statusText, json);
+        return { text: `Echo: ${prompt}`, data: json };
+      }
+
       const text =
         json?.choices?.[0]?.message?.content || json?.response || JSON.stringify(json);
 

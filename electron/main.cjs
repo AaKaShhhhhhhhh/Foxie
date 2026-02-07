@@ -1,6 +1,15 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+function getTextFromContentParts(parts) {
+  if (!Array.isArray(parts)) return '';
+  return parts
+    .map((p) => (p && p.type === 'text' && typeof p.text === 'string' ? p.text : ''))
+    .join('');
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -37,55 +46,108 @@ app.whenReady().then(() => {
 
   // LLM proxy handler - simple fetch using environment LLM_API_KEY
   ipcMain.handle('invoke-llm', async (_ev, payload) => {
-    const provider = process.env.LLM_PROVIDER || 'tambo';
-    const key =
-      process.env.TAMBO_API_KEY ||
-      process.env.LLM_API_KEY ||
-      process.env.OPENAI_API_KEY ||
-      '';
-
-    if (!key) return { error: 'LLM API key not configured on host' };
-
-    const baseUrl =
-      process.env.TAMBO_API_ENDPOINT ||
-      process.env.LLM_BASE_URL ||
-      (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1');
-
     try {
-      const endpoint = `${String(baseUrl).replace(/\/$/, '')}/chat/completions`;
-
       const prompt = typeof payload?.prompt === 'string' ? payload.prompt : '';
-      const rawMessages = Array.isArray(payload?.messages) ? payload.messages : null;
-      const messages = rawMessages?.length
-        ? rawMessages.filter(
-            (m) =>
-              m &&
-              typeof m === 'object' &&
-              typeof m.role === 'string' &&
-              typeof m.content === 'string'
-          )
-        : [{ role: 'user', content: prompt }];
+      const provider = process.env.LLM_PROVIDER || 'tambo';
 
-      const model =
-        payload.model || (provider === 'openai' ? 'gpt-4o-mini' : 'gpt-5.2');
+      if (provider === 'openai') {
+        const key = process.env.OPENAI_API_KEY || process.env.LLM_API_KEY || '';
+        if (!key) return { error: 'LLM API key not configured on host' };
+
+        const baseUrl = process.env.LLM_BASE_URL || 'https://api.openai.com/v1';
+        const endpoint = `${String(baseUrl).replace(/\/$/, '')}/chat/completions`;
+
+        const rawMessages = Array.isArray(payload?.messages) ? payload.messages : null;
+        const messages = rawMessages?.length
+          ? rawMessages.filter(
+              (m) =>
+                m &&
+                typeof m === 'object' &&
+                typeof m.role === 'string' &&
+                typeof m.content === 'string'
+            )
+          : [{ role: 'user', content: prompt }];
+
+        const model = payload.model || 'gpt-4o-mini';
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: payload.temperature ?? 0.7,
+            max_tokens: payload.max_tokens ?? 1024,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          return { error: `LLM request failed: ${res.status} ${res.statusText}`, data: json };
+        }
+
+        return { data: json };
+      }
+
+      const key =
+        process.env.TAMBO_PROJECT_API_KEY ||
+        process.env.TAMBO_API_KEY ||
+        process.env.LLM_API_KEY ||
+        '';
+
+      if (!key) return { error: 'LLM API key not configured on host' };
+
+      const threadId = process.env.TAMBO_THREAD_ID || '';
+      if (!threadId) return { error: 'TAMBO_THREAD_ID not configured on host' };
+
+      const baseUrl =
+        process.env.TAMBO_API_BASE_URL ||
+        process.env.TAMBO_API_ENDPOINT ||
+        'https://api.tambo.co';
+      const endpoint = `${String(baseUrl).replace(/\/$/, '')}/threads/${encodeURIComponent(threadId)}/advance`;
+
+      const additionalContext =
+        payload?.context && typeof payload.context === 'object' ? payload.context : undefined;
+
+      const body = {
+        contextKey:
+          typeof payload?.contextKey === 'string'
+            ? payload.contextKey
+            : process.env.TAMBO_CONTEXT_KEY,
+        messageToAppend: {
+          role: 'user',
+          content: [{ type: 'text', text: prompt }],
+          ...(additionalContext ? { additionalContext } : {}),
+        },
+      };
+
+      if (!body.contextKey) delete body.contextKey;
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: payload.temperature ?? 0.7,
-          max_tokens: payload.max_tokens ?? 1024,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+          'x-api-key': key,
+        },
+        body: JSON.stringify(body),
       });
-      const json = await res.json();
+
+      const raw = await res.text();
+      const json = raw ? JSON.parse(raw) : null;
 
       if (!res.ok) {
         return { error: `LLM request failed: ${res.status} ${res.statusText}`, data: json };
       }
 
-      return { data: json };
+      const text = getTextFromContentParts(json?.responseMessageDto?.content);
+      const normalized = {
+        choices: [{ message: { content: text || JSON.stringify(json) } }],
+        raw: json,
+      };
+
+      return { data: normalized };
     } catch (err) {
       return { error: String(err) };
     }
