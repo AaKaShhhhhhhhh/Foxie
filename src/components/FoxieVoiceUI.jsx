@@ -51,8 +51,9 @@ const FoxieVoiceUI = ({
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setVoiceSupported(false);
+      if (onError) onError('Voice features are not supported in this browser (like Brave). Try Chrome or Edge! 🦊🎤');
     }
-  }, []);
+  }, [onError]);
 
   /**
    * Request microphone permission and setup audio visualizer
