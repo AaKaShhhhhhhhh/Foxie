@@ -1861,7 +1861,7 @@ body {
   transform: translateX(-50%);
   margin-bottom: 10px;
   background: white;
-  padding: 10px 14px 10px 12px;
+  padding: 10px 14px 12px 12px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -1869,6 +1869,7 @@ body {
   max-width: min(280px, calc(100vw - 32px));
   max-height: 40vh;
   overflow: auto;
+  scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
   pointer-events: auto;
   z-index: 10002;

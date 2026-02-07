@@ -212,11 +212,11 @@ const FoxieAvatar = ({
           setTargetPosition({ x: 92, y: 50 });
           setCurrentAnimation('pomodoro');
         }
-        
+
         // Initial encouragement
         setThought(
-          pomodoroState.sessionType === 'work' 
-            ? "Focus time! I'll keep watch. ⏱️" 
+          pomodoroState.sessionType === 'work'
+            ? "Focus time! I'll keep watch. ⏱️"
             : "Relax! Take a deep breath. ☕"
         );
       }, 0);
@@ -230,8 +230,8 @@ const FoxieAvatar = ({
     } else if (pomodoroActiveRef.current) {
       pomodoroActiveRef.current = false;
 
+      // Reset when stopping
       const resetTimeout = setTimeout(() => {
-        // Reset when stopping
         setCurrentAnimation('idle');
         setTargetPosition({ x: 80, y: 70 });
       }, 0);
