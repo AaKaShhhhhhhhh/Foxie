@@ -4,6 +4,23 @@ import { callLLM } from './ai';
 export const parseFoxieCommand = async (transcript) => {
     const text = transcript.toLowerCase().trim();
 
+    const appMap = {
+        'notes': 'Notes',
+        'note': 'Notes',
+        'notepad': 'Notes',
+        'tasks': 'Task Manager',
+        'task': 'Task Manager',
+        'todo': 'Task Manager',
+        'to-do': 'Task Manager',
+        'pomodoro': 'Pomodoro',
+        'timer': 'Pomodoro',
+        'clock': 'Pomodoro',
+        'dashboard': 'Dashboard',
+        'stats': 'Dashboard',
+        'assistant': 'Foxie Assistant',
+        'chat': 'Foxie Assistant'
+    };
+
     const commands = [
         { keywords: ['sleep', 'go to sleep', 'nap'], type: 'SLEEP', text: '😴 Going to sleep...' },
         { keywords: ['play', 'let\'s play', 'wanna play'], type: 'PLAY', text: '🎮 Let\'s play!' },
@@ -37,24 +54,7 @@ export const parseFoxieCommand = async (transcript) => {
     // Priority 2: Structured Pattern Matching (Regex-like)
 
     // Open App: "open [app name]"
-    if (text.includes('open') || text.includes('launch')) {
-        const appMap = {
-            'notes': 'Notes',
-            'note': 'Notes',
-            'notepad': 'Notes',
-            'tasks': 'Task Manager',
-            'task': 'Task Manager',
-            'todo': 'Task Manager',
-            'to-do': 'Task Manager',
-            'pomodoro': 'Pomodoro',
-            'timer': 'Pomodoro',
-            'clock': 'Pomodoro',
-            'dashboard': 'Dashboard',
-            'stats': 'Dashboard',
-            'assistant': 'Foxie Assistant',
-            'chat': 'Foxie Assistant'
-        };
-
+    if (/\b(open|launch)\b/.test(text)) {
         for (const [key, appName] of Object.entries(appMap)) {
             if (text.includes(key)) {
                 return { type: 'OPEN_APP', app: appName, text: `Opening ${appName}... 📱` };
@@ -63,28 +63,32 @@ export const parseFoxieCommand = async (transcript) => {
     }
 
     // Close App: "close [app name]" or "exit [app name]"
-    if (text.includes('close') || text.includes('exit') || text.includes('stop')) {
-        const appMap = {
-            'notes': 'Notes',
-            'note': 'Notes',
-            'notepad': 'Notes',
-            'tasks': 'Task Manager',
-            'task': 'Task Manager',
-            'todo': 'Task Manager',
-            'to-do': 'Task Manager',
-            'pomodoro': 'Pomodoro',
-            'timer': 'Pomodoro',
-            'clock': 'Pomodoro',
-            'dashboard': 'Dashboard',
-            'stats': 'Dashboard',
-            'assistant': 'Foxie Assistant',
-            'chat': 'Foxie Assistant'
-        };
+    const hasCloseVerb = /\b(close|exit|quit)\b/.test(text);
+    const hasStopVerb = /\bstop\b/.test(text);
+    const closeContextWord = /\b(app|window|this|it|current)\b/.test(text);
+    const stopIsLikelyClose =
+        hasStopVerb &&
+        (closeContextWord || Object.keys(appMap).some((key) => text.includes(key)));
 
+    if (hasCloseVerb || stopIsLikelyClose) {
         for (const [key, appName] of Object.entries(appMap)) {
             if (text.includes(key)) {
                 return { type: 'CLOSE_APP', app: appName, text: `Closing ${appName}...` };
             }
+        }
+
+        const closeMatch = text.match(/\b(?:close|exit|quit|stop)\b\s+(?:the\s+)?(.+)$/);
+        if (closeMatch?.[1]) {
+            const candidate = closeMatch[1]
+                .replace(/\b(app|application|window)\b/g, '')
+                .trim();
+            if (candidate) {
+                return { type: 'CLOSE_APP', app: candidate, text: `Closing ${candidate}...` };
+            }
+        }
+
+        if (closeContextWord) {
+            return { type: 'CLOSE_APP', text: 'Closing current window...' };
         }
     }
 

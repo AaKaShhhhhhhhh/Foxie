@@ -124,6 +124,15 @@ const Desktop = () => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
+  // Keep `activeWindowId` in sync when windows are closed.
+  useEffect(() => {
+    if (activeWindowId == null) return;
+    if (windows.some((w) => w.id === activeWindowId)) return;
+
+    const nextActive = windows.length ? windows[windows.length - 1].id : null;
+    setActiveWindowId(nextActive);
+  }, [windows, activeWindowId]);
+
   // Toggle window minimization
   const toggleMinimize = useCallback((id) => {
     setWindows((prev) =>
@@ -238,15 +247,32 @@ const Desktop = () => {
         openWindow(command.app);
         addNotification(command.text, 2000);
         break;
-      case 'CLOSE_APP':
-        const windowToClose = windows.find(w => w.name === command.app);
+      case 'CLOSE_APP': {
+        const normalize = (value) => (value ?? '').toString().toLowerCase().trim();
+        const query = normalize(command.app);
+
+        const activeWindow = windows.find((w) => w.id === activeWindowId);
+
+        let windowToClose = null;
+        if (!query) {
+          windowToClose = activeWindow ?? windows[windows.length - 1] ?? null;
+        } else {
+          const matches = windows.filter((w) => {
+            const name = normalize(w.name);
+            return name === query || name.includes(query) || query.includes(name);
+          });
+
+          windowToClose = matches.find((w) => w.id === activeWindowId) ?? matches[matches.length - 1] ?? null;
+        }
+
         if (windowToClose) {
           closeWindow(windowToClose.id);
-          addNotification(command.text, 2000);
+          addNotification(command.text ?? `Closing ${windowToClose.name}...`, 2000);
         } else {
-          addNotification(`I don't see ${command.app} open.`, 2000);
+          addNotification(query ? `I don't see ${command.app} open.` : "I don't see any apps open.", 2000);
         }
         break;
+      }
       case 'START_TIMER':
         // Immediate visual feedback + open app
         setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
