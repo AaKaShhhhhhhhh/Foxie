@@ -121,7 +121,18 @@ const Desktop = () => {
 
   // Close a window
   const closeWindow = useCallback((id) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
+    setWindows((prev) => {
+      const next = prev.filter((w) => w.id !== id);
+
+      setActiveWindowId((currentActive) => {
+        if (currentActive == null) return currentActive;
+        if (currentActive === id) return next.length ? next[next.length - 1].id : null;
+        if (next.some((w) => w.id === currentActive)) return currentActive;
+        return next.length ? next[next.length - 1].id : null;
+      });
+
+      return next;
+    });
   }, []);
 
   // Toggle window minimization
@@ -238,15 +249,45 @@ const Desktop = () => {
         openWindow(command.app);
         addNotification(command.text, 2000);
         break;
-      case 'CLOSE_APP':
-        const windowToClose = windows.find(w => w.name === command.app);
+      case 'CLOSE_APP': {
+        const normalize = (value) => (value ?? '').toString().toLowerCase().trim();
+        const query = normalize(command.app);
+        const queryWords = query.split(/\s+/).filter(Boolean);
+
+        const activeWindow = windows.find((w) => w.id === activeWindowId);
+
+        let windowToClose = null;
+        if (!query) {
+          windowToClose = activeWindow ?? windows[windows.length - 1] ?? null;
+        } else {
+          const matches = windows
+            .map((w) => {
+              const name = normalize(w.name);
+              if (!name) return null;
+
+              if (name === query) return { win: w, score: 3, overlap: 0 };
+              if (name.startsWith(query) || name.includes(query)) return { win: w, score: 2, overlap: 0 };
+
+              const nameWords = name.split(/\s+/).filter(Boolean);
+              const overlap = nameWords.filter((word) => queryWords.includes(word)).length;
+              if (overlap > 0) return { win: w, score: 1, overlap };
+
+              return null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.score - a.score || (b.overlap ?? 0) - (a.overlap ?? 0));
+
+          windowToClose = matches.find((m) => m.win.id === activeWindowId)?.win ?? matches[0]?.win ?? null;
+        }
+
         if (windowToClose) {
           closeWindow(windowToClose.id);
-          addNotification(command.text, 2000);
+          addNotification(command.text ?? `Closing ${windowToClose.name}...`, 2000);
         } else {
-          addNotification(`I don't see ${command.app} open.`, 2000);
+          addNotification(query ? `I don't see ${command.app} open.` : "I don't see any apps open.", 2000);
         }
         break;
+      }
       case 'START_TIMER':
         // Immediate visual feedback + open app
         setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
