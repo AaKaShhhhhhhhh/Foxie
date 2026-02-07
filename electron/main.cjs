@@ -141,7 +141,7 @@ app.whenReady().then(() => {
 
       const text = getTextFromContentParts(json?.responseMessageDto?.content);
       const normalized = {
-        choices: [{ message: { content: text || JSON.stringify(json) } }],
+        choices: [{ message: { content: text || '[no text content in Tambo response]' } }],
         raw: json,
       };
 

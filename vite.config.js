@@ -18,8 +18,10 @@ async function readJsonBody(req) {
     req.on('data', (chunk) => {
       body += chunk;
       if (body.length > maxBodyBytes) {
+        const err = new Error('Request body too large')
+        err.code = 'BODY_TOO_LARGE'
         req.destroy()
-        reject(new Error('Request body too large'))
+        reject(err)
       }
     });
     req.on('end', () => {
@@ -104,7 +106,7 @@ function tamboAskProxyPlugin(env) {
 
       const text = getTextFromContentParts(json?.responseMessageDto?.content);
       const normalized = {
-        choices: [{ message: { content: text || JSON.stringify(json) } }],
+        choices: [{ message: { content: text || '[no text content in Tambo response]' } }],
         raw: json,
       };
 
@@ -112,7 +114,7 @@ function tamboAskProxyPlugin(env) {
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(normalized));
     } catch (err) {
-      res.statusCode = 500;
+      res.statusCode = err?.code === 'BODY_TOO_LARGE' ? 413 : 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: String(err) }));
     }
