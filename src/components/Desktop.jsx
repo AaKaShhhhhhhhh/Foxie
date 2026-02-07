@@ -14,8 +14,13 @@ import DesktopTopBar from './DesktopTopBar';
 import Notes from './apps/Notes';
 import Pomodoro from './apps/Pomodoro';
 import Tasks from './apps/Tasks';
+import Calculator from './apps/Calculator';
+import Weather from './apps/Weather';
+import Browser from './apps/Browser';
+import Settings from './apps/Settings';
 import ProductivityDashboard from './ProductivityDashboard';
 import PreviewWindow from './PreviewWindow';
+import DraggableIcon from './DraggableIcon';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
 import { isFoxieWakePhrase, onFoxieWake } from '../utils/foxieWake';
 
@@ -65,6 +70,37 @@ const Desktop = () => {
 
   const closePreviewWindow = useCallback(() => {
     setPreviewWindow(prev => ({ ...prev, isOpen: false }));
+  }, []);
+
+  // Desktop icons persistence
+  const ICON_STORAGE_KEY = 'foxie_desktop_icons';
+  const defaultIcons = [
+    { id: 'assistant', name: 'Foxie Assistant', icon: '🦊', x: 20, y: 68 },
+    { id: 'calculator', name: 'Calculator', icon: '🧮', x: 20, y: 168 },
+    { id: 'notes', name: 'Notes', icon: '📝', x: 20, y: 268 },
+    { id: 'weather', name: 'Weather', icon: '🌤️', x: 20, y: 368 },
+    { id: 'browser', name: 'Browser', icon: '🌐', x: 120, y: 68 },
+    { id: 'pomodoro', name: 'Pomodoro', icon: '🍅', x: 120, y: 168 },
+    { id: 'tasks', name: 'Tasks', icon: '✅', x: 120, y: 268 },
+    { id: 'dashboard', name: 'Dashboard', icon: '📊', x: 120, y: 368 },
+    { id: 'settings', name: 'Settings', icon: '⚙️', x: 220, y: 68 },
+  ];
+
+  const [iconPositions, setIconPositions] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ICON_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : defaultIcons;
+    } catch (e) {
+      return defaultIcons;
+    }
+  });
+
+  const handleIconDragStop = useCallback((id, pos) => {
+    setIconPositions(prev => {
+      const next = prev.map(icon => icon.id === id ? { ...icon, ...pos } : icon);
+      localStorage.setItem(ICON_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
   }, []);
 
   // Life simulation
@@ -183,6 +219,14 @@ const Desktop = () => {
         return <Tasks />;
       case 'Dashboard':
         return <ProductivityDashboard onOpenApp={openWindow} />;
+      case 'Calculator':
+        return <Calculator />;
+      case 'Weather':
+        return <Weather />;
+      case 'Browser':
+        return <Browser />;
+      case 'Settings':
+        return <Settings />;
       default:
         return <div className="app-placeholder">App: {appName}</div>;
     }
@@ -353,11 +397,24 @@ const Desktop = () => {
     [userActive, windows.length, lastAppOpened, focusTime]
   );
 
+
   return (
     <AdaptiveUIProvider appState={appState}>
       <div className="desktop">
-        {/* Desktop Background */}
-        <div className="desktop-background"></div>
+        {/* Desktop Background with Draggable Icons */}
+        <div className="desktop-background">
+          {iconPositions.map((app) => (
+            <DraggableIcon
+              key={app.id}
+              id={app.id}
+              name={app.name}
+              icon={app.icon}
+              initialPosition={{ x: app.x, y: app.y }}
+              onDragStop={handleIconDragStop}
+              onClick={() => openWindow(app.name)}
+            />
+          ))}
+        </div>
 
         {/* Top Navigation Bar - Replaces Desktop Widgets */}
         <DesktopTopBar
