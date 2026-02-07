@@ -7,7 +7,7 @@ function loadEnvFromProjectRoot() {
   const root = path.join(__dirname, '..');
   const dotenv = require('dotenv');
 
-  for (const filename of ['.env.local', '.env']) {
+  for (const filename of ['.env', '.env.local']) {
     const envPath = path.join(root, filename);
     if (!fs.existsSync(envPath)) continue;
 
