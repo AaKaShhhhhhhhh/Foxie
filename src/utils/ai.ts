@@ -32,7 +32,9 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
 
       if (result?.error) {
         console.error('LLM request failed:', result.error);
-        if (!key) return { text: `Echo: ${prompt}`, data: result };
+        if (result.error !== 'LLM API key not configured on host' || !key) {
+          return { text: `Echo: ${prompt}`, data: result };
+        }
       } else {
         const json = result?.data ?? result;
         const text =
@@ -48,7 +50,7 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
 
   if (!key) {
     console.warn(
-      'LLM API key not set. Set VITE_TAMBO_API_KEY (or VITE_OPENAI_API_KEY / VITE_LLM_API_KEY) in .env.local.'
+      'LLM API key not set. Set VITE_LLM_API_KEY (or VITE_TAMBO_API_KEY / VITE_OPENAI_API_KEY) in .env.local.'
     );
     return { text: `Echo: ${prompt}` };
   }
