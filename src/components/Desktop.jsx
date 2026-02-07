@@ -41,6 +41,12 @@ const Desktop = () => {
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
   const [pomodoroState, setPomodoroState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
   const foxieSleepTimerRef = useRef(null);
+  const windowsRef = useRef(windows); // Track latest windows for closures
+
+  // Keep windowsRef in sync
+  useEffect(() => {
+    windowsRef.current = windows;
+  }, [windows]);
 
   // Life simulation
   const {
@@ -239,12 +245,22 @@ const Desktop = () => {
         addNotification(command.text, 2000);
         break;
       case 'CLOSE_APP':
-        const windowToClose = windows.find(w => w.name === command.app);
+        const currentWindows = windowsRef.current;
+        const windowToClose = currentWindows.find(w => w.name === command.app);
         if (windowToClose) {
           closeWindow(windowToClose.id);
           addNotification(command.text, 2000);
         } else {
           addNotification(`I don't see ${command.app} open.`, 2000);
+        }
+        break;
+      case 'CLOSE_ALL':
+        const allWindows = windowsRef.current;
+        if (allWindows.length > 0) {
+          allWindows.forEach(w => closeWindow(w.id));
+          addNotification('All apps closed! 🧹', 2000);
+        } else {
+          addNotification('No apps are open.', 2000);
         }
         break;
       case 'START_TIMER':

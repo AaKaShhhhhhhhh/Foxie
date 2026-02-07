@@ -64,25 +64,36 @@ export const parseFoxieCommand = async (transcript) => {
 
     // Close App: "close [app name]" or "exit [app name]"
     if (text.includes('close') || text.includes('exit') || text.includes('stop')) {
+        // Close all apps
+        if (text.includes('all') || text.includes('everything') || text.includes('all apps')) {
+            return { type: 'CLOSE_ALL', text: 'Closing all apps... 🧹' };
+        }
+        
         const appMap = {
             'notes': 'Notes',
             'note': 'Notes',
             'notepad': 'Notes',
-            'tasks': 'Task Manager',
-            'task': 'Task Manager',
-            'todo': 'Task Manager',
-            'to-do': 'Task Manager',
+            'tasks': 'Tasks',
+            'task': 'Tasks',
+            'task manager': 'Tasks',
+            'todo': 'Tasks',
+            'to-do': 'Tasks',
             'pomodoro': 'Pomodoro',
             'timer': 'Pomodoro',
             'clock': 'Pomodoro',
             'dashboard': 'Dashboard',
             'stats': 'Dashboard',
+            'productivity': 'Dashboard',
             'assistant': 'Foxie Assistant',
-            'chat': 'Foxie Assistant'
+            'chat': 'Foxie Assistant',
+            'windows': 'all' // Special: closes all
         };
 
         for (const [key, appName] of Object.entries(appMap)) {
             if (text.includes(key)) {
+                if (appName === 'all') {
+                    return { type: 'CLOSE_ALL', text: 'Closing all apps... 🧹' };
+                }
                 return { type: 'CLOSE_APP', app: appName, text: `Closing ${appName}...` };
             }
         }
