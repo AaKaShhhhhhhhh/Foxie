@@ -28,7 +28,7 @@ const DesktopTopBar = (props) => {
       <div className="top-bar-left">
         <div className="brand-logo">
           <span className="brand-icon">🦊</span>
-          <span className="brand-text">Foxie<span className="brand-highlight">OS</span></span>
+          <span className="brand-text">Foxie</span>
         </div>
 
         <div className="top-nav-divider" />

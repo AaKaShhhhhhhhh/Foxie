@@ -104,7 +104,7 @@ const Settings = ({ onSettingsChange }) => {
       </div>
 
       <div className="settings-footer">
-        <p className="settings-version">Foxie Desktop v1.0</p>
+        <p className="settings-version">Foxie v1.0</p>
       </div>
     </div>
   );

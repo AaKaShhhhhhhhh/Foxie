@@ -17,7 +17,7 @@ const StartMenu = ({ onOpenApp, onClose }) => {
     <div className="start-menu-overlay" onClick={onClose}>
       <div className="start-menu" onClick={(e) => e.stopPropagation()}>
         <div className="start-menu-header">
-          <h2>Foxie Desktop</h2>
+          <h2>Foxie</h2>
         </div>
 
         <div className="apps-grid">
