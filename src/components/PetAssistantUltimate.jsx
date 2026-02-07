@@ -7,6 +7,8 @@ import { useFoxPersonality } from '../hooks/useFoxPersonality';
 import { useFoxAutonomy } from '../hooks/useFoxAutonomy';
 import { useVoiceActivation } from '../hooks/useVoiceActivation';
 import { useLifeSimulation } from '../hooks/useLifeSimulation';
+import { askTambo } from '../api/tambo';
+
 
 const MotionDiv = motion.div;
 
@@ -29,9 +31,10 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
   const tamboQueryRef = useRef(null);
 
   // Hand tracking state - must be declared before hooks that use it
-  const [handVisible] = useState(false);
-  const [currentGesture] = useState(null);
+  const [handVisible, setHandVisible] = useState(false);
+  const [currentGesture, setCurrentGesture] = useState(null);
   const [foxScale, setFoxScale] = useState(1);
+  const [tamboThreadId, setTamboThreadId] = useState(null);
 
   // Emotion and behavior state
   const { stats, suggestion } = usePetEmotions({
@@ -143,10 +146,23 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
   /**
    * Voice command handler
    */
-  const handleVoiceCommand = useCallback((command, transcript) => {
-    if (!command) return;
+  // Concurrency lock for voice commands
+  const [isProcessing, setIsProcessing] = useState(false);
 
+  /**
+   * Voice command handler
+   */
+  const handleVoiceCommand = useCallback(async (command, transcript) => {
+    if (!command) return;
+    if (isProcessing) {
+        console.log("Ignoring command, already processing...");
+        return;
+    }
+
+    setIsProcessing(true);
     let response;
+    
+    try {
 
     switch (command.type) {
       case 'SLEEP':
@@ -223,15 +239,25 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
         break;
 
       case 'CHAT': {
-        // Generic conversation response
-        const chatResponses = [
-          'I\'m listening! 🐾',
-          'Tell me more! 👂',
-          'That\'s interesting! 🤔',
-          '*tilts head curiously*',
-          'I understand! 💭',
-        ];
-        response = { message: chatResponses[Math.floor(Math.random() * chatResponses.length)] };
+        if (onSpeak) onSpeak("Thinking... 🤔");
+        transitionBehavior('concentrated'); // Look like thinking
+        
+        try {
+            // Remove the trigger phrase from transcript if needed, or send whole thing
+            // Assuming transcript is the full user text
+            const text = command.data || transcript;
+            const tamboResponse = await askTambo(text, tamboThreadId);
+            
+            if (tamboResponse.threadId) {
+                setTamboThreadId(tamboResponse.threadId);
+            }
+            
+            response = { message: tamboResponse.response };
+            transitionBehavior('idle'); // Back to normal
+        } catch (err) {
+            console.error("Tambo error", err);
+            response = { message: "I couldn't reach my brain... 😵" };
+        }
         break;
       }
 
@@ -245,7 +271,11 @@ const PetAssistantUltimate = ({ userActive, windowsOpen, onSpeak, onNotification
 
     playGestureSound('wave');
     trackActivity('voice_command', { command: command.type, transcript });
-  }, [feed, giveWater, rest, play, praise, transitionBehavior, onSpeak, getUrgentNeed, getLifeMood, playGestureSound, trackActivity]);
+    
+    } finally {
+        setIsProcessing(false);
+    }
+  }, [feed, giveWater, rest, play, praise, transitionBehavior, onSpeak, getUrgentNeed, getLifeMood, playGestureSound, trackActivity, tamboThreadId, isProcessing]);
 
   /**
    *  return;
