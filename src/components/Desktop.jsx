@@ -121,17 +121,19 @@ const Desktop = () => {
 
   // Close a window
   const closeWindow = useCallback((id) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }, []);
+    setWindows((prev) => {
+      const next = prev.filter((w) => w.id !== id);
 
-  // Keep `activeWindowId` in sync when windows are closed.
-  useEffect(() => {
-    setActiveWindowId((currentActive) => {
-      if (currentActive == null) return currentActive;
-      if (windows.some((w) => w.id === currentActive)) return currentActive;
-      return windows.length ? windows[windows.length - 1].id : null;
+      setActiveWindowId((currentActive) => {
+        if (currentActive == null) return currentActive;
+        if (currentActive === id) return next.length ? next[next.length - 1].id : null;
+        if (next.some((w) => w.id === currentActive)) return currentActive;
+        return next.length ? next[next.length - 1].id : null;
+      });
+
+      return next;
     });
-  }, [windows]);
+  }, []);
 
   // Toggle window minimization
   const toggleMinimize = useCallback((id) => {
@@ -258,14 +260,24 @@ const Desktop = () => {
         if (!query) {
           windowToClose = activeWindow ?? windows[windows.length - 1] ?? null;
         } else {
-          const matches = windows.filter((w) => {
-            const name = normalize(w.name);
-            if (name === query || name.includes(query)) return true;
-            const nameWords = name.split(/\s+/).filter(Boolean);
-            return nameWords.some((word) => queryWords.includes(word));
-          });
+          const matches = windows
+            .map((w) => {
+              const name = normalize(w.name);
+              if (!name) return null;
 
-          windowToClose = matches.find((w) => w.id === activeWindowId) ?? matches[matches.length - 1] ?? null;
+              if (name === query) return { win: w, score: 3, overlap: 0 };
+              if (name.startsWith(query) || name.includes(query)) return { win: w, score: 2, overlap: 0 };
+
+              const nameWords = name.split(/\s+/).filter(Boolean);
+              const overlap = nameWords.filter((word) => queryWords.includes(word)).length;
+              if (overlap > 0) return { win: w, score: 1, overlap };
+
+              return null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.score - a.score || (b.overlap ?? 0) - (a.overlap ?? 0));
+
+          windowToClose = matches.find((m) => m.win.id === activeWindowId)?.win ?? matches[0]?.win ?? null;
         }
 
         if (windowToClose) {

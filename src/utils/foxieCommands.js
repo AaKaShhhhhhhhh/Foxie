@@ -69,7 +69,7 @@ export const parseFoxieCommand = async (transcript) => {
     const appContextWord = /\b(app|application|window|tab)\b/.test(text);
     const stopIsLikelyClose =
         hasStopVerb &&
-        (appContextWord || Object.keys(appMap).some((key) => text.includes(key)));
+        appContextWord;
 
     if (hasCloseVerb || stopIsLikelyClose) {
         for (const [key, appName] of Object.entries(appMap)) {
@@ -84,7 +84,7 @@ export const parseFoxieCommand = async (transcript) => {
                 .replace(/\b(app|application|window)\b/g, '')
                 .trim();
             if (candidate) {
-                return { type: 'CLOSE_APP', app: candidate, text: `Closing ${candidate}...` };
+                return { type: 'CLOSE_APP', app: candidate };
             }
         }
 
