@@ -6,12 +6,12 @@ import { parseFoxieCommand } from '../utils/foxieCommands';
  * FoxieVoiceUI - Sleek, tech-savvy voice control interface
  * Real microphone permissions and voice activation
  */
-const FoxieVoiceUI = ({ 
-  onWake, 
+const FoxieVoiceUI = ({
+  onWake,
   onCommand,
   onTranscriptUpdate,
   onVisualizerUpdate,
-  onError, 
+  onError,
   onMoodChange,
   foxieState = 'idle',
   listening = false, // Controlled by Desktop top bar
@@ -26,9 +26,9 @@ const FoxieVoiceUI = ({
   const [lastCommand, setLastCommand] = useState(null);
   const [visualizerBars, setVisualizerBars] = useState(Array(12).fill(0));
   const [voiceSupported, setVoiceSupported] = useState(true);
-  
 
-  
+
+
   // Refs
   const recognitionRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -50,25 +50,25 @@ const FoxieVoiceUI = ({
    */
   const requestMicPermission = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
-        } 
+        }
       });
-      
+
       streamRef.current = stream;
       setHasPermission(true);
       setPermissionDenied(false);
-      
+
       // Setup audio context for visualizer
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       const source = audioContextRef.current.createMediaStreamSource(stream);
       source.connect(analyserRef.current);
       analyserRef.current.fftSize = 32;
-      
+
       return true;
     } catch (error) {
       console.error('Microphone permission denied:', error);
@@ -89,14 +89,14 @@ const FoxieVoiceUI = ({
 
     const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
     analyserRef.current.getByteFrequencyData(dataArray);
-    
+
     // Map to 12 bars
     const bars = [];
     for (let i = 0; i < 12; i++) {
       const index = Math.floor(i * dataArray.length / 12);
       bars.push(dataArray[index] / 255);
     }
-    
+
     setVisualizerBars(bars);
     if (onVisualizerUpdate) onVisualizerUpdate(bars);
     animationFrameRef.current = requestAnimationFrame(updateVisualizer);
@@ -109,6 +109,19 @@ const FoxieVoiceUI = ({
   // Keep refs in sync
   useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
   useEffect(() => { isAwakeRef.current = isAwake; }, [isAwake]);
+
+  // Sync with parent foxieState (for Push-to-Talk)
+  useEffect(() => {
+    if (foxieState === 'awake' && !isAwake) {
+      console.log('FoxieVoiceUI: Waking up from prop sync');
+      setIsAwake(true);
+      isAwakeRef.current = true;
+    } else if (foxieState !== 'awake' && isAwake) {
+      console.log('FoxieVoiceUI: Sleeping from prop sync');
+      setIsAwake(false);
+      isAwakeRef.current = false;
+    }
+  }, [foxieState, isAwake]);
 
   /**
    * Initialize Speech Recognition
@@ -127,7 +140,7 @@ const FoxieVoiceUI = ({
       const current = event.resultIndex;
       const transcript = event.results[current][0].transcript.toLowerCase().trim();
       const isFinal = event.results[current].isFinal;
-      
+
       console.log(`FoxieVoiceUI: Heard [${isFinal ? 'FINAL' : 'INTERIM'}]:`, transcript);
       setCurrentTranscript(transcript);
       if (onTranscriptUpdate) onTranscriptUpdate(transcript);
@@ -135,7 +148,7 @@ const FoxieVoiceUI = ({
       // Wake word detection
       const wakeWords = ['hey foxie', 'hi foxie', 'hello foxie', 'hey foxy', 'hi foxy', 'ok foxie', 'okay foxie'];
       const hasWakeWord = wakeWords.some(word => transcript.includes(word));
-      
+
       let effectiveAwake = isAwakeRef.current;
 
       if (!isAwakeRef.current && hasWakeWord) {
@@ -143,10 +156,10 @@ const FoxieVoiceUI = ({
         setIsAwake(true);
         isAwakeRef.current = true; // Sync immediately for local logic
         effectiveAwake = true;
-        
+
         setLastCommand({ type: 'WAKE', text: 'Foxie is listening!' });
         if (onWake) onWake();
-        
+
         if (awakeTimeoutRef.current) clearTimeout(awakeTimeoutRef.current);
         awakeTimeoutRef.current = setTimeout(() => {
           setIsAwake(false);
@@ -159,19 +172,19 @@ const FoxieVoiceUI = ({
         // Strip wake word for cleaner processing if present
         let cleanTranscript = transcript;
         wakeWords.forEach(word => {
-            if (cleanTranscript.startsWith(word)) {
-                cleanTranscript = cleanTranscript.replace(word, '').trim();
-            }
+          if (cleanTranscript.startsWith(word)) {
+            cleanTranscript = cleanTranscript.replace(word, '').trim();
+          }
         });
 
         console.log('FoxieVoiceUI: Parsing command from:', cleanTranscript || transcript);
         const command = await parseFoxieCommand(cleanTranscript || transcript);
-        
+
         if (command && command.type !== 'WAKE') {
           console.log('FoxieVoiceUI: Command recognized:', command.type);
           setLastCommand(command);
           if (onCommand) onCommand(command, transcript);
-          
+
           if (awakeTimeoutRef.current) clearTimeout(awakeTimeoutRef.current);
           awakeTimeoutRef.current = setTimeout(() => {
             setIsAwake(false);
@@ -191,7 +204,7 @@ const FoxieVoiceUI = ({
       if (retryErrors.includes(event.error)) {
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
-            try { recognitionRef.current.start(); } catch (e) {}
+            try { recognitionRef.current.start(); } catch (e) { }
           }
         }, 1000);
       }
@@ -200,7 +213,7 @@ const FoxieVoiceUI = ({
     recognition.onend = () => {
       console.log('FoxieVoiceUI: Recognition ended. Restarting?', isListeningRef.current);
       if (isListeningRef.current && recognitionRef.current) {
-        try { recognitionRef.current.start(); } catch (e) {}
+        try { recognitionRef.current.start(); } catch (e) { }
       }
     };
 
@@ -245,7 +258,11 @@ const FoxieVoiceUI = ({
   /**
    * Stop listening
    */
+  /**
+   * Stop listening
+   */
   const stopListening = useCallback(() => {
+    isListeningRef.current = false; // Immediate update to prevent onEnd restart
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
@@ -264,7 +281,7 @@ const FoxieVoiceUI = ({
     isAwakeRef.current = true;
     setLastCommand({ type: 'WAKE', text: 'Foxie is listening!' });
     if (onWake) onWake();
-    
+
     if (awakeTimeoutRef.current) {
       clearTimeout(awakeTimeoutRef.current);
     }
@@ -302,7 +319,7 @@ const FoxieVoiceUI = ({
   }, []);
 
   return (
-    <motion.div 
+    <motion.div
       className="foxie-voice-ui"
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
@@ -310,12 +327,12 @@ const FoxieVoiceUI = ({
       style={{ pointerEvents: 'none' }} /* Pass through clicks to desktop */
     >
       {/* Main Voice Control Card - Only visible when awake/active */}
-      <div 
+      <div
         className={`voice-control-card ${isAwake ? 'awake' : ''} ${isListening ? 'listening' : ''}`}
-        style={{ 
+        style={{
           // Show if Awake (active interaction) OR explicit user interaction would go here.
           // Hide if just listening in background (isAwake=false)
-          opacity: isAwake ? 1 : 0, 
+          opacity: isAwake ? 1 : 0,
           pointerEvents: isAwake ? 'auto' : 'none',
           transform: isAwake ? 'scale(1)' : 'scale(0.9)',
           transition: 'all 0.3s ease'
@@ -327,10 +344,10 @@ const FoxieVoiceUI = ({
             <span className="voice-icon">{isAwake ? '🦊' : '🎙️'}</span>
             <span className="voice-text">
               {!voiceSupported ? 'Voice Not Supported' :
-               permissionDenied ? 'Microphone Blocked' :
-               isAwake ? 'Foxie is Listening!' :
-               isListening ? 'Say "Hey Foxie"' : 
-               'Voice Control'}
+                permissionDenied ? 'Microphone Blocked' :
+                  isAwake ? 'Foxie is Listening!' :
+                    isListening ? 'Say "Hey Foxie"' :
+                      'Voice Control'}
             </span>
           </div>
           <div className={`status-dot ${isListening ? 'active' : ''} ${isAwake ? 'awake' : ''}`} />
@@ -342,7 +359,7 @@ const FoxieVoiceUI = ({
             <motion.div
               key={i}
               className="visualizer-bar"
-              animate={{ 
+              animate={{
                 height: isListening ? `${Math.max(4, height * 40)}px` : '4px',
                 backgroundColor: isAwake ? '#ff6b6b' : '#4ecdc4'
               }}

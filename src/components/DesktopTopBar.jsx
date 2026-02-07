@@ -19,7 +19,7 @@ const DesktopTopBar = (props) => {
   ];
 
   return (
-    <motion.div 
+    <motion.div
       className="desktop-top-bar"
       initial={{ y: -50 }}
       animate={{ y: 0 }}
@@ -30,9 +30,9 @@ const DesktopTopBar = (props) => {
           <span className="brand-icon">🦊</span>
           <span className="brand-text">Foxie<span className="brand-highlight">OS</span></span>
         </div>
-        
+
         <div className="top-nav-divider" />
-        
+
         <nav className="top-nav-menu">
           {menuItems.map((item) => (
             <button
@@ -50,7 +50,7 @@ const DesktopTopBar = (props) => {
       <div className="top-bar-center">
         <AnimatePresence mode="wait">
           {props.foxieAwake && (
-            <motion.div 
+            <motion.div
               className="voice-status-indicator"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -58,10 +58,10 @@ const DesktopTopBar = (props) => {
             >
               <div className="top-visualizer">
                 {props.voiceVisualizer?.map((height, i) => (
-                  <div 
-                    key={i} 
-                    className="top-viz-bar" 
-                    style={{ height: `${Math.max(2, height * 16)}px` }} 
+                  <div
+                    key={i}
+                    className="top-viz-bar"
+                    style={{ height: `${Math.max(2, height * 16)}px` }}
                   />
                 ))}
               </div>
@@ -75,28 +75,33 @@ const DesktopTopBar = (props) => {
 
       <div className="top-bar-right">
         {/* Voice Toggle */}
-        <button 
+        <button
           className={`voice-toggle-btn ${props.isVoiceActive ? 'active' : ''}`}
-          onClick={props.onToggleVoice}
-          title={props.isVoiceActive ? "Disable Voice Control" : "Enable Voice Control"}
-          style={{ 
-            background: 'none', 
-            border: 'none', 
-            cursor: 'pointer', 
+          onMouseDown={props.onStartVoice}
+          onMouseUp={props.onStopVoice}
+          onMouseLeave={props.onStopVoice}
+          onTouchStart={props.onStartVoice}
+          onTouchEnd={props.onStopVoice}
+          title="Hold to Speak"
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
             fontSize: '1.2rem',
             padding: '0 12px',
             opacity: props.isVoiceActive ? 1 : 0.6,
             transition: 'all 0.2s ease',
-            position: 'relative'
+            position: 'relative',
+            userSelect: 'none' // Prevent text selection on hold
           }}
         >
           {props.isVoiceActive ? '🎙️' : '🔇'}
-          {props.isVoiceActive && !props.foxieAwake && (
-             <motion.div 
-               className="mic-pulse-ring" 
-               animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
-               transition={{ repeat: Infinity, duration: 2 }}
-             />
+          {props.isVoiceActive && (
+            <motion.div
+              className="mic-pulse-ring"
+              animate={{ scale: [1, 1.5], opacity: [0.5, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            />
           )}
         </button>
 
@@ -106,9 +111,9 @@ const DesktopTopBar = (props) => {
             <span className="status-text">{props.isVoiceActive ? 'Voice System Ready' : 'System Active'}</span>
           </div>
         </div>
-        
+
         <div className="top-nav-divider" />
-        
+
         <div className="top-clock">
           <span className="clock-time">
             {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
