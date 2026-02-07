@@ -427,7 +427,7 @@ const FoxieAvatar = ({
         if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
         thoughtTimeoutRef.current = setTimeout(() => {
           setCurrentAnimation('idle');
-          setThought(null);
+          // Thought remains persistent now
         }, 2000);
       }
     } else {
@@ -504,7 +504,6 @@ const FoxieAvatar = ({
           if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
           if (currentAnimation === 'giggle') {
             setCurrentAnimation('idle');
-            setThought(null);
           }
         }}
         onTap={() => {
@@ -546,7 +545,19 @@ const FoxieAvatar = ({
                   />
                 </form>
               ) : (
-                <span className="foxie-dialogue-text">{thought}</span>
+                <>
+                  <button 
+                    className="close-thought-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setThought(null);
+                    }}
+                    title="Close"
+                  >
+                    ×
+                  </button>
+                  <span className="foxie-dialogue-text">{thought}</span>
+                </>
               )}
             </Motion.div>
           )}
