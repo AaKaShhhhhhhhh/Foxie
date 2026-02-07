@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
 
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config();
 
 function getTextFromContentParts(parts) {
   if (!Array.isArray(parts)) return '';
@@ -121,7 +121,6 @@ app.whenReady().then(() => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${key}`,
           'x-api-key': key,
         },
         body: JSON.stringify(body),

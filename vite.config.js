@@ -28,8 +28,10 @@ async function readJsonBody(req) {
       if (!body) return resolve({});
       try {
         resolve(JSON.parse(body));
-      } catch (err) {
-        reject(err);
+      } catch {
+        const parseErr = new Error('Invalid JSON body')
+        parseErr.code = 'INVALID_JSON'
+        reject(parseErr)
       }
     });
     req.on('error', reject);
@@ -44,7 +46,7 @@ function tamboAskProxyPlugin(env) {
   async function handler(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, x-api-key');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
 
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
@@ -83,7 +85,6 @@ function tamboAskProxyPlugin(env) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${key}`,
           'x-api-key': key,
         },
         body: JSON.stringify(upstreamBody),
@@ -114,7 +115,8 @@ function tamboAskProxyPlugin(env) {
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(normalized));
     } catch (err) {
-      res.statusCode = err?.code === 'BODY_TOO_LARGE' ? 413 : 500;
+      res.statusCode =
+        err?.code === 'BODY_TOO_LARGE' ? 413 : err?.code === 'INVALID_JSON' ? 400 : 500;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: String(err) }));
     }
@@ -133,8 +135,14 @@ function tamboAskProxyPlugin(env) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const serverEnv = {
+    TAMBO_API_KEY: env.TAMBO_API_KEY,
+    TAMBO_THREAD_ID: env.TAMBO_THREAD_ID,
+    TAMBO_API_BASE_URL: env.TAMBO_API_BASE_URL,
+    TAMBO_API_ENDPOINT: env.TAMBO_API_ENDPOINT,
+  }
 
   return {
-    plugins: [react(), tamboAskProxyPlugin(env)],
+    plugins: [react(), tamboAskProxyPlugin(serverEnv)],
   };
 });
