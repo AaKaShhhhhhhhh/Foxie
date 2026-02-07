@@ -206,15 +206,15 @@ const FoxieAvatar = ({
         // Move to side and look like a clock
         setTargetPosition({ x: 92, y: 50 });
         setCurrentAnimation('pomodoro');
-
+        
         // Initial encouragement
         setThought(
-          pomodoroState.sessionType === 'work'
-            ? "Focus time! I'll keep watch. ⏱️"
+          pomodoroState.sessionType === 'work' 
+            ? "Focus time! I'll keep watch. ⏱️" 
             : "Relax! Take a deep breath. ☕"
         );
       }, 0);
-
+      
       // Clear thought after 5s
       const clearThoughtTimeout = setTimeout(() => setThought(null), 5000);
       return () => {
@@ -239,19 +239,22 @@ const FoxieAvatar = ({
     // Check periodically on specific time markers roughly
     const minsLeft = Math.floor(pomodoroState.timeLeft / 60);
     const secsLeft = pomodoroState.timeLeft % 60;
+
+    let encouragementTimeout = null;
+    let clearThoughtTimeout = null;
     
     // Only react on exact minute boundaries to avoid spam, and only sometimes
     if (secsLeft === 0 && minsLeft > 0 && minsLeft % 5 === 0) {
-      const encouragementTimeout = setTimeout(() => {
+      encouragementTimeout = setTimeout(() => {
         setThought(`You're doing great! ${minsLeft}m to go! 🦊`);
       }, 0);
-      const clearThoughtTimeout = setTimeout(() => setThought(null), 4000);
-
-      return () => {
-        clearTimeout(encouragementTimeout);
-        clearTimeout(clearThoughtTimeout);
-      };
+      clearThoughtTimeout = setTimeout(() => setThought(null), 4000);
     }
+
+    return () => {
+      if (encouragementTimeout) clearTimeout(encouragementTimeout);
+      if (clearThoughtTimeout) clearTimeout(clearThoughtTimeout);
+    };
   }, [pomodoroState.timeLeft, isPomodoroMode]);
 
   /**
@@ -345,12 +348,15 @@ const FoxieAvatar = ({
     e.preventDefault();
     if (!chatInput.trim()) return;
 
+    const cmdText = chatInput.trim();
+
     setThought('Thinking... 💭');
     if (onInteraction) onInteraction();
 
-    // Send command to the handler after a short delay for UX
+    // Send command to the handler after a short delay for UX.
+    // Command parsing/dispatch happens upstream (in `onCommand`).
     setTimeout(() => {
-      if (onCommand) onCommand(chatInput);
+      if (onCommand) onCommand(cmdText);
       setChatInput('');
       setChatMode(false);
     }, 1000);
