@@ -91,7 +91,6 @@ app.whenReady().then(() => {
       }
 
       const key =
-        process.env.TAMBO_PROJECT_API_KEY ||
         process.env.TAMBO_API_KEY ||
         process.env.LLM_API_KEY ||
         '';
@@ -111,18 +110,12 @@ app.whenReady().then(() => {
         payload?.context && typeof payload.context === 'object' ? payload.context : undefined;
 
       const body = {
-        contextKey:
-          typeof payload?.contextKey === 'string'
-            ? payload.contextKey
-            : process.env.TAMBO_CONTEXT_KEY,
         messageToAppend: {
           role: 'user',
           content: [{ type: 'text', text: prompt }],
           ...(additionalContext ? { additionalContext } : {}),
         },
       };
-
-      if (!body.contextKey) delete body.contextKey;
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -135,7 +128,12 @@ app.whenReady().then(() => {
       });
 
       const raw = await res.text();
-      const json = raw ? JSON.parse(raw) : null;
+      let json = null;
+      try {
+        json = raw ? JSON.parse(raw) : null;
+      } catch (parseErr) {
+        json = { parseError: String(parseErr), raw };
+      }
 
       if (!res.ok) {
         return { error: `LLM request failed: ${res.status} ${res.statusText}`, data: json };

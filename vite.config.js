@@ -14,8 +14,13 @@ function getTextFromContentParts(parts) {
 async function readJsonBody(req) {
   return await new Promise((resolve, reject) => {
     let body = '';
+    const maxBodyBytes = 1024 * 1024
     req.on('data', (chunk) => {
       body += chunk;
+      if (body.length > maxBodyBytes) {
+        req.destroy()
+        reject(new Error('Request body too large'))
+      }
     });
     req.on('end', () => {
       if (!body) return resolve({});
@@ -30,14 +35,14 @@ async function readJsonBody(req) {
 }
 
 function tamboAskProxyPlugin(env) {
-  const key = env.TAMBO_PROJECT_API_KEY || env.TAMBO_API_KEY || '';
+  const key = env.TAMBO_API_KEY || '';
   const threadId = env.TAMBO_THREAD_ID || '';
   const baseUrl = env.TAMBO_API_BASE_URL || env.TAMBO_API_ENDPOINT || 'https://api.tambo.co';
 
   async function handler(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, x-api-key');
 
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
@@ -61,12 +66,10 @@ function tamboAskProxyPlugin(env) {
     try {
       const body = await readJsonBody(req);
       const message = typeof body?.message === 'string' ? body.message : '';
-      const contextKey = typeof body?.contextKey === 'string' ? body.contextKey : undefined;
       const additionalContext = body?.context && typeof body.context === 'object' ? body.context : undefined;
 
       const endpoint = `${String(baseUrl).replace(/\/$/, '')}/threads/${encodeURIComponent(threadId)}/advance`;
       const upstreamBody = {
-        ...(contextKey ? { contextKey } : {}),
         messageToAppend: {
           role: 'user',
           content: [{ type: 'text', text: message }],
@@ -85,7 +88,12 @@ function tamboAskProxyPlugin(env) {
       });
 
       const raw = await upstream.text();
-      const json = raw ? JSON.parse(raw) : null;
+      let json = null;
+      try {
+        json = raw ? JSON.parse(raw) : null;
+      } catch (parseErr) {
+        json = { parseError: String(parseErr), raw };
+      }
 
       if (!upstream.ok) {
         res.statusCode = upstream.status;
