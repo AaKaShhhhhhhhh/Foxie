@@ -67,7 +67,8 @@ export const parseFoxieCommand = async (transcript) => {
          return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
     }
 
-    // Priority 3: AI Chat Fallback (General Questions)
+    // Priority 3: AI Chat Fallback
+    // Any request that doesn't match a known command is treated as general chat.
     try {
         console.log('FoxieCommands: No match, responding with AI chat...');
 

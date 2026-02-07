@@ -54,9 +54,9 @@ export async function callLLM(prompt: string, options: any = {}): Promise<LLMRes
     
     const body = {
       model: options.model || (provider === 'tambo' ? 'gpt-5.2' : 'gpt-4o-mini'),
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 1024,
-      temperature: 0.7,
+      messages: options.messages || [{ role: 'user', content: prompt }],
+      max_tokens: options.max_tokens ?? 1024,
+      temperature: options.temperature ?? 0.7,
     };
 
     const res = await fetch(endpoint, {

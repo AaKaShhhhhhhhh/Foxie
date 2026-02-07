@@ -54,7 +54,18 @@ app.whenReady().then(() => {
     try {
       const endpoint = `${String(baseUrl).replace(/\/$/, '')}/chat/completions`;
 
-      const messages = payload.messages || [{ role: 'user', content: payload.prompt }];
+      const prompt = typeof payload?.prompt === 'string' ? payload.prompt : '';
+      const rawMessages = Array.isArray(payload?.messages) ? payload.messages : null;
+      const messages = rawMessages?.length
+        ? rawMessages.filter(
+            (m) =>
+              m &&
+              typeof m === 'object' &&
+              typeof m.role === 'string' &&
+              typeof m.content === 'string'
+          )
+        : [{ role: 'user', content: prompt }];
+
       const model =
         payload.model || (provider === 'openai' ? 'gpt-4o-mini' : 'gpt-5.2');
 
