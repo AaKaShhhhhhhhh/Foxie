@@ -410,6 +410,8 @@ const FoxieAvatar = ({
                 borderRadius: '12px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 minWidth: '120px',
+                width: 'auto',
+                maxWidth: '280px',
                 zIndex: 1001,
                 overflow: 'hidden'
               }}
@@ -439,7 +441,7 @@ const FoxieAvatar = ({
                   />
                 </form>
               ) : (
-                <span style={{ fontSize: '14px', color: '#333', whiteSpace: 'nowrap' }}>{thought}</span>
+                <span style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap', display: 'block', textAlign: 'center' }}>{thought}</span>
               )}
 
               <div style={{
