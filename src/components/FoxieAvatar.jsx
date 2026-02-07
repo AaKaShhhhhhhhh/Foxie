@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import FoxieAvatarSVG from './FoxieAvatarSVG';
 
 /**
@@ -11,10 +11,8 @@ const FoxieAvatar = ({
   isAwake = true,
   isListening = false,
   lastCommand = null,
-  needs = { hunger: 80, thirst: 80, sleep: 80, happiness: 80 },
   onInteraction,
   onCommand, // Added prop for chat
-  userActivity = null,
   pomodoroState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
 }) => {
   // Position and animation state
@@ -22,14 +20,9 @@ const FoxieAvatar = ({
   const [targetPosition, setTargetPosition] = useState({ x: 80, y: 70 });
   const [currentAnimation, setCurrentAnimation] = useState('idle');
   const [thought, setThought] = useState(null);
-  const [isFollowingMouse, setIsFollowingMouse] = useState(false);
   
   // Pomodoro Mode Derived State
   const isPomodoroMode = pomodoroState?.isRunning;
-
-  // Mouse tracking
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
 
   // Refs
   const thoughtTimeoutRef = useRef(null);
@@ -327,7 +320,7 @@ const FoxieAvatar = ({
   const [chatInput, setChatInput] = useState('');
 
   /* Handle Drag Interaction */
-  const handleDragEnd = (event, info) => {
+  const handleDragEnd = () => {
     // Just trigger interaction to keep awake
     if (onInteraction) onInteraction();
   };
@@ -339,14 +332,12 @@ const FoxieAvatar = ({
     setThought('Thinking... 💭');
     if (onInteraction) onInteraction();
 
-    // Parse command locally first for smart handling
-    import('../utils/foxieCommands').then(({ parseFoxieCommand }) => {
-      setTimeout(() => {
-        if (onCommand) onCommand(chatInput);
-        setChatInput('');
-        setChatMode(false);
-      }, 1000);
-    });
+    // Send command to the handler after a short delay for UX
+    setTimeout(() => {
+      if (onCommand) onCommand(chatInput);
+      setChatInput('');
+      setChatMode(false);
+    }, 1000);
   };
 
   /* Drag Constraints */
@@ -368,7 +359,7 @@ const FoxieAvatar = ({
         }}
       />
 
-      <motion.div
+      <Motion.div
         className={`foxie-avatar-container ${currentAnimation}`}
         style={getAnimationStyles()}
         variants={avatarVariants}
@@ -397,24 +388,8 @@ const FoxieAvatar = ({
         {/* Thought Bubble / Chat Input */}
         <AnimatePresence>
           {(thought || chatMode) && (
-            <motion.div
-              className="thought-bubble"
-              style={{
-                position: 'absolute',
-                bottom: '100%',
-                left: '50%',
-                translateX: '-50%',
-                marginBottom: '10px',
-                background: 'white',
-                padding: '8px 12px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                minWidth: '120px',
-                width: 'auto',
-                maxWidth: '280px',
-                zIndex: 1001,
-                overflow: 'hidden'
-              }}
+            <Motion.div
+              className="foxie-dialogue-bubble"
               initial={{ opacity: 0, scale: 0.5, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.5, y: 10 }}
@@ -422,41 +397,24 @@ const FoxieAvatar = ({
               onPointerDown={(e) => e.stopPropagation()}
             >
               {chatMode ? (
-                <form onSubmit={handleChatSubmit} style={{ display: 'flex', gap: '4px' }}>
+                <form className="foxie-dialogue-form" onSubmit={handleChatSubmit}>
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="Tell Foxie..."
                     autoFocus
-                    style={{
-                      border: '1px solid #eee',
-                      borderRadius: '4px',
-                      padding: '4px',
-                      fontSize: '12px',
-                      outline: 'none',
-                      width: '100%'
-                    }}
+                    className="foxie-dialogue-input"
                     onBlur={() => setTimeout(() => setChatMode(false), 200)} // Close on blur delay
                   />
                 </form>
               ) : (
-                <span style={{ fontSize: '14px', color: '#333', whiteSpace: 'pre-wrap', display: 'block', textAlign: 'center' }}>{thought}</span>
+                <span className="foxie-dialogue-text">{thought}</span>
               )}
-
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                marginLeft: '-6px',
-                borderWidth: '6px',
-                borderStyle: 'solid',
-                borderColor: 'white transparent transparent transparent'
-              }} />
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </Motion.div>
     </>
   );
 };

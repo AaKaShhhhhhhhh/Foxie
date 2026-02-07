@@ -1852,3 +1852,66 @@ body {
   color: #666;
   font-style: italic;
 }
+
+/* Foxie avatar dialogue box */
+.foxie-dialogue-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  background: white;
+  padding: 10px 14px 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  min-width: 140px;
+  max-width: min(320px, calc(100vw - 32px));
+  max-height: 40vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+  z-index: 10002;
+}
+
+.foxie-dialogue-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid white;
+}
+
+.foxie-dialogue-text {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  line-height: 1.25;
+}
+
+.foxie-dialogue-form {
+  display: flex;
+}
+
+.foxie-dialogue-input {
+  width: 100%;
+  border: 1px solid #e7e7e7;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+.foxie-dialogue-input:focus {
+  border-color: rgba(0, 120, 212, 0.45);
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+}
