@@ -379,9 +379,10 @@ const FoxieVoiceUI = ({
         style={{
           // Show if Awake (active interaction) OR explicit user interaction would go here.
           // Hide if just listening in background (isAwake=false)
-          opacity: isAwake ? 1 : 0,
-          pointerEvents: isAwake ? 'auto' : 'none',
-          transform: isAwake ? 'scale(1)' : 'scale(0.9)',
+          // NEW: If visible=false, FORCE hide (opacity 0)
+          opacity: (visible && isAwake) ? 1 : 0,
+          pointerEvents: (visible && isAwake) ? 'auto' : 'none',
+          transform: (visible && isAwake) ? 'scale(1)' : 'scale(0.9)',
           transition: 'all 0.3s ease'
         }}
       >

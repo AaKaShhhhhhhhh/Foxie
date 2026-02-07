@@ -13,6 +13,8 @@ const FoxieAvatar = ({
   lastCommand = null,
   onInteraction,
   onCommand, // Added prop for chat
+  onStartVoice, // New prop for voice trigger
+  onStopVoice, // New prop for voice trigger
   pomodoroState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
 }) => {
   // Position and animation state
@@ -20,7 +22,7 @@ const FoxieAvatar = ({
   const [targetPosition, setTargetPosition] = useState({ x: 80, y: 70 });
   const [currentAnimation, setCurrentAnimation] = useState('idle');
   const [thought, setThought] = useState(null);
-  
+
   // Pomodoro Mode Derived State
   const isPomodoroMode = pomodoroState?.isRunning;
 
@@ -118,8 +120,8 @@ const FoxieAvatar = ({
         setThought('Hi there! 👋 I\'m ready to help!');
       },
       STATUS: () => {
-         setCurrentAnimation('love');
-         setThought(`I'm feeling ${mood}! Thanks for asking! 🦊`);
+        setCurrentAnimation('love');
+        setThought(`I'm feeling ${mood}! Thanks for asking! 🦊`);
       },
       CHAT: () => {
         setCurrentAnimation('curious');
@@ -134,16 +136,16 @@ const FoxieAvatar = ({
         }
       },
       OPEN_APP: () => {
-         // "Float" up briefly
-         setTargetPosition({ ...position, y: 10 }); 
-         setCurrentAnimation('jumping');
-         setThought(`Opening ${lastCommand.app || 'app'}! 📱`);
-         
-         // Return after 2s
-         setTimeout(() => {
-             setTargetPosition({ x: 80, y: 70 });
-             setCurrentAnimation('idle');
-         }, 2000);
+        // "Float" up briefly
+        setTargetPosition({ ...position, y: 10 });
+        setCurrentAnimation('jumping');
+        setThought(`Opening ${lastCommand.app || 'app'}! 📱`);
+
+        // Return after 2s
+        setTimeout(() => {
+          setTargetPosition({ x: 80, y: 70 });
+          setCurrentAnimation('idle');
+        }, 2000);
       }
     };
 
@@ -228,7 +230,7 @@ const FoxieAvatar = ({
             : "Relax! Take a deep breath. ☕"
         );
       }, 0);
-      
+
       // Clear thought after 5s
       const clearThoughtTimeout = setTimeout(() => setThought(null), 5000);
       return () => {
@@ -258,7 +260,7 @@ const FoxieAvatar = ({
 
     let encouragementTimeout = null;
     let clearThoughtTimeout = null;
-    
+
     // Only react on exact minute boundaries to avoid spam, and only sometimes
     if (secsLeft === 0 && minsLeft > 0 && minsLeft % 5 === 0) {
       encouragementTimeout = setTimeout(() => {
@@ -277,33 +279,33 @@ const FoxieAvatar = ({
    * Animation Variants
    */
   const avatarVariants = {
-    idle: { 
-      scale: 1, 
-      y: 0, 
+    idle: {
+      scale: 1,
+      y: 0,
       rotate: 0,
       transition: { type: 'spring', stiffness: 300, damping: 20 }
     },
-    walking: { 
+    walking: {
       y: [0, -10, 0],
       x: [0, 5, 0],
       transition: { repeat: Infinity, duration: 0.6 }
     },
-    jumping: { 
+    jumping: {
       y: [0, 20, -100, 0], // Squish, Jump, Land
       scaleY: [1, 0.7, 1.3, 1], // Stretch in air
       transition: { duration: 0.8, times: [0, 0.2, 0.5, 1] }
     },
-    playful: { 
+    playful: {
       rotate: [0, 10, -10, 0],
       scale: [1, 1.1, 1],
       transition: { repeat: Infinity, duration: 0.8 }
     },
-    spinning: { 
+    spinning: {
       rotate: 360,
       scale: [1, 0.8, 1],
       transition: { duration: 0.6 }
     },
-    alert: { 
+    alert: {
       scale: 1.15,
       y: -10,
       transition: { type: 'spring', stiffness: 500 }
@@ -355,9 +357,18 @@ const FoxieAvatar = ({
   const [chatInput, setChatInput] = useState('');
 
   /* Handle Drag Interaction */
+  const handleDragStart = () => {
+    if (onStartVoice) onStartVoice();
+    if (onInteraction) onInteraction();
+    setThought("I am listening...");
+    if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
+  };
+
   const handleDragEnd = () => {
+    if (onStopVoice) onStopVoice();
     // Just trigger interaction to keep awake
     if (onInteraction) onInteraction();
+    setThought(null);
   };
 
   const handleChatSubmit = (e) => {
@@ -408,6 +419,7 @@ const FoxieAvatar = ({
         dragMomentum={false}
         dragElastic={0.2}
         dragConstraints={constraintsRef}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onTap={() => {
           if (!chatMode) {
@@ -428,9 +440,9 @@ const FoxieAvatar = ({
           {(thought || chatMode) && (
             <Motion.div
               className="foxie-dialogue-bubble"
-              initial={{ opacity: 0, scale: 0.5, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.5, y: 10 }}
+              initial={{ opacity: 0, scale: 0.5, y: 10, x: '-50%' }}
+              animate={{ opacity: 1, scale: 1, y: 0, x: '-50%' }}
+              exit={{ opacity: 0, scale: 0.5, y: 10, x: '-50%' }}
               // Stop drag propagation on the bubble so we can interact with input
               onPointerDown={(e) => e.stopPropagation()}
             >

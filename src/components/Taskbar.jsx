@@ -29,22 +29,7 @@ const Taskbar = ({
         <span className="start-text">Start</span>
       </button>
 
-      {/* Search / command */}
-      <div className="taskbar-search">
-        <input
-          className="taskbar-search-input"
-          value={commandText}
-          onChange={(e) => setCommandText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== 'Enter') return;
-            const text = commandText;
-            setCommandText('');
-            if (onCommandSubmit) onCommandSubmit(text);
-          }}
-          placeholder="Type 'hey foxie'"
-          aria-label="Taskbar command"
-        />
-      </div>
+
 
       {/* App Buttons */}
       <div className="taskbar-apps">
