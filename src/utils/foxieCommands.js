@@ -62,6 +62,32 @@ export const parseFoxieCommand = async (transcript) => {
         }
     }
 
+    // Close App: "close [app name]" or "exit [app name]"
+    if (text.includes('close') || text.includes('exit') || text.includes('stop')) {
+        const appMap = {
+            'notes': 'Notes',
+            'note': 'Notes',
+            'notepad': 'Notes',
+            'tasks': 'Task Manager',
+            'task': 'Task Manager',
+            'todo': 'Task Manager',
+            'to-do': 'Task Manager',
+            'pomodoro': 'Pomodoro',
+            'timer': 'Pomodoro',
+            'clock': 'Pomodoro',
+            'dashboard': 'Dashboard',
+            'stats': 'Dashboard',
+            'assistant': 'Foxie Assistant',
+            'chat': 'Foxie Assistant'
+        };
+
+        for (const [key, appName] of Object.entries(appMap)) {
+            if (text.includes(key)) {
+                return { type: 'CLOSE_APP', app: appName, text: `Closing ${appName}...` };
+            }
+        }
+    }
+
     // Start Timer: "start timer", "start pomodoro", "set timer for..."
     if (text.includes('start timer') || text.includes('start pomodoro') || text.includes('set timer') || text.includes('focus')) {
          return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
@@ -72,7 +98,7 @@ export const parseFoxieCommand = async (transcript) => {
     try {
         console.log('FoxieCommands: No match, responding with AI chat...');
 
-        const prompt = `You are Foxie, a helpful desktop assistant and virtual pet fox. Reply concisely and stay in character.\n\nUser: ${transcript}`;
+        const prompt = `You are Foxie, a helpful desktop assistant and virtual pet fox. Reply concisely and stay in character. If the user asks a math question, provide ONLY the final numerical answer without showing steps or reasoning.\n\nUser: ${transcript}`;
         const response = await callLLM(prompt);
         return { type: 'CHAT', text: response.text };
     } catch (error) {

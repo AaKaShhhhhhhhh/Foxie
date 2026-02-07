@@ -238,6 +238,15 @@ const Desktop = () => {
         openWindow(command.app);
         addNotification(command.text, 2000);
         break;
+      case 'CLOSE_APP':
+        const windowToClose = windows.find(w => w.name === command.app);
+        if (windowToClose) {
+          closeWindow(windowToClose.id);
+          addNotification(command.text, 2000);
+        } else {
+          addNotification(`I don't see ${command.app} open.`, 2000);
+        }
+        break;
       case 'START_TIMER':
         // Immediate visual feedback + open app
         setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
@@ -250,7 +259,7 @@ const Desktop = () => {
       default:
         addNotification(command.text || "I'm not sure how to do that, but I'm learning! 🦊", 3000);
     }
-  }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep]);
+  }, [addNotification, feed, giveWater, rest, play, praise, scheduleFoxieSleep, windows, openWindow, closeWindow]);
 
   const handleToggleVoice = useCallback(() => {
     const nextState = !voiceActive;

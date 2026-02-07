@@ -20,6 +20,8 @@ const FoxieAvatar = ({
   const [targetPosition, setTargetPosition] = useState({ x: 80, y: 70 });
   const [currentAnimation, setCurrentAnimation] = useState('idle');
   const [thought, setThought] = useState(null);
+  const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
+
 
   // Pomodoro Mode Derived State
   const isPomodoroMode = pomodoroState?.isRunning;
@@ -28,6 +30,8 @@ const FoxieAvatar = ({
   const thoughtTimeoutRef = useRef(null);
   const wanderIntervalRef = useRef(null);
   const pomodoroActiveRef = useRef(false);
+  const hoverTimerRef = useRef(null);
+  const shakeStartRef = useRef(null);
 
   /**
    * React to voice commands
@@ -151,6 +155,16 @@ const FoxieAvatar = ({
     if (reaction) {
       reaction();
 
+      // Clean thought from excessive emojis if it's a CHAT response
+      if (lastCommand.type === 'CHAT' && typeof lastCommand.text === 'string') {
+        const cleaned = lastCommand.text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, (match, offset, string) => {
+          // Keep only first 2 emojis if they are grouped or something? Or just limit?
+          // User asked to remove "unnecessary" emojis. Let's just strip most if they are excessive.
+          return (offset < 2) ? match : ''; 
+        });
+        setThought(cleaned);
+      }
+
       // Clear thought after delay
       if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
       thoughtTimeoutRef.current = setTimeout(() => {
@@ -205,6 +219,38 @@ const FoxieAvatar = ({
     });
     return () => cancelAnimationFrame(frame);
   }, [targetPosition, position]);
+
+  /**
+   * Eye tracking logic
+   */
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Get avatar's center in pixels
+      const avatarRect = {
+        x: (window.innerWidth * position.x) / 100,
+        y: (window.innerHeight * position.y) / 100,
+      };
+
+      const dx = e.clientX - avatarRect.x;
+      const dy = e.clientY - avatarRect.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Max displacement (pupil radius - eye radius approx)
+      const maxOffset = 5; 
+      
+      if (distance > 0) {
+        // Limit movement to maxOffset
+        const scale = Math.min(maxOffset, distance * 0.05) / distance;
+        setEyeOffset({
+          x: dx * scale,
+          y: dy * scale,
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [position]);
 
   /**
    * Pomodoro Mode Logic
@@ -332,6 +378,16 @@ const FoxieAvatar = ({
       opacity: 0.8,
       y: 10,
       transition: { duration: 1 }
+    },
+    giggle: {
+      scale: [1, 1.1, 1, 1.1, 1],
+      rotate: [0, 5, -5, 5, 0],
+      transition: { repeat: Infinity, duration: 0.3 }
+    },
+    dizzy: {
+      rotate: [0, 360],
+      x: [0, 10, -10, 10, 0],
+      transition: { repeat: Infinity, duration: 2, ease: "linear" }
     }
   };
 
@@ -355,7 +411,32 @@ const FoxieAvatar = ({
   const [chatInput, setChatInput] = useState('');
 
   /* Handle Drag Interaction */
+  const handleDrag = (event, info) => {
+    // Detect shake (high velocity)
+    const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
+    
+    if (velocity > 800) {
+      if (!shakeStartRef.current) {
+        shakeStartRef.current = Date.now();
+      } else if (Date.now() - shakeStartRef.current > 1500) {
+        // Sustained shake for 1.5s
+        setCurrentAnimation('dizzy');
+        setThought('Whoa... dizzy... 😵');
+        
+        // Stay dizzy for 2 seconds after shake stops
+        if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
+        thoughtTimeoutRef.current = setTimeout(() => {
+          setCurrentAnimation('idle');
+          setThought(null);
+        }, 2000);
+      }
+    } else {
+      shakeStartRef.current = null;
+    }
+  };
+
   const handleDragEnd = () => {
+    shakeStartRef.current = null;
     // Just trigger interaction to keep awake
     if (onInteraction) onInteraction();
   };
@@ -408,7 +489,24 @@ const FoxieAvatar = ({
         dragMomentum={false}
         dragElastic={0.2}
         dragConstraints={constraintsRef}
+        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
+        onMouseEnter={() => {
+          if (currentAnimation === 'idle' && isAwake) {
+            // Wait for 2 seconds of sustained hover before giggling
+            hoverTimerRef.current = setTimeout(() => {
+              setCurrentAnimation('giggle');
+              setThought('*giggles* That tickles! 😆');
+            }, 2000);
+          }
+        }}
+        onMouseLeave={() => {
+          if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+          if (currentAnimation === 'giggle') {
+            setCurrentAnimation('idle');
+            setThought(null);
+          }
+        }}
         onTap={() => {
           if (!chatMode) {
             setChatMode(true);
@@ -421,6 +519,7 @@ const FoxieAvatar = ({
           mood={isPomodoroMode ? 'pomodoro' : (currentAnimation === 'idle' ? mood : currentAnimation)}
           isListening={isListening}
           isAwake={isAwake}
+          eyeOffset={eyeOffset}
         />
 
         {/* Thought Bubble / Chat Input */}

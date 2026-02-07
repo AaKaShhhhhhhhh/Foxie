@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
+const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 } }) => {
   // Eye shapes based on mood
   const getEyePath = () => {
     switch (mood) {
@@ -35,6 +35,14 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
           fill: "none",
           strokeWidth: 4
         };
+      case 'dizzy':
+        return {
+          d: "M 35 55 A 8 8 0 1 1 55 55 A 8 8 0 1 1 35 55", // swirly/circular
+          stroke: "#3d2b1f",
+          fill: "none",
+          strokeWidth: 3,
+          strokeDasharray: "4 2"
+        };
       default: // normal/curious
         return {
           cx: 45, cy: 55, r: 5,
@@ -66,6 +74,18 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
     if (mood === 'angry') {
       return <path d="M 145 60 L 165 50" stroke="#3d2b1f" strokeWidth="4" fill="none" strokeLinecap="round" />;
     }
+    if (mood === 'dizzy') {
+      return (
+        <motion.path 
+          d="M 145 55 A 10 10 0 1 1 165 55 A 10 10 0 1 1 145 55" 
+          stroke="#3d2b1f" strokeWidth="2" fill="none" 
+          strokeDasharray="4 2"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          style={{ originX: "155px", originY: "55px" }}
+        />
+      );
+    }
     // Normal/Circle
     return <circle cx="155" cy="55" r={mood === 'startled' ? 8 : 5} fill="#3d2b1f" />;
   };
@@ -79,6 +99,18 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
     }
     if (mood === 'angry') {
       return <path d="M 35 50 L 55 60" stroke="#3d2b1f" strokeWidth="4" fill="none" strokeLinecap="round" />;
+    }
+    if (mood === 'dizzy') {
+      return (
+        <motion.path 
+          d="M 35 55 A 10 10 0 1 1 55 55 A 10 10 0 1 1 35 55" 
+          stroke="#3d2b1f" strokeWidth="2" fill="none" 
+          strokeDasharray="4 2"
+          animate={{ rotate: -360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          style={{ originX: "45px", originY: "55px" }}
+        />
+      );
     }
     return <circle cx="45" cy="55" r={mood === 'startled' ? 8 : 5} fill="#3d2b1f" />;
   };
@@ -163,32 +195,40 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake }) => {
         {/* Cheeks/White Fur */}
         <path d="M 10 100 Q 10 150 50 170 Q 100 180 150 170 Q 190 150 190 100 Q 150 130 100 130 Q 50 130 10 100" fill="#FFF7ED" />
 
-        {/* Eyes with Blinking */}
+        {/* Eyes with Blinking & Tracking */}
         <motion.g 
           animate={{ 
-            scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
-          }} 
-          transition={{
-            repeat: isAwake ? Infinity : 0,
-            repeatDelay: 4,
-            duration: 0.2
+            x: eyeOffset.x,
+            y: eyeOffset.y
           }}
-          style={{ transformOrigin: '45px 55px' }}
+          transition={{ type: 'spring', stiffness: 200, damping: 30 }}
         >
-          <LeftEye />
-        </motion.g>
-        <motion.g 
-          animate={{ 
-            scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
-          }} 
-          transition={{
-            repeat: isAwake ? Infinity : 0,
-            repeatDelay: 4,
-            duration: 0.2
-          }}
-          style={{ transformOrigin: '155px 55px' }}
-        >
-          <RightEye />
+          <motion.g 
+            animate={{ 
+              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
+            }} 
+            transition={{
+              repeat: isAwake ? Infinity : 0,
+              repeatDelay: 4,
+              duration: 0.2
+            }}
+            style={{ transformOrigin: '45px 55px' }}
+          >
+            <LeftEye />
+          </motion.g>
+          <motion.g 
+            animate={{ 
+              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
+            }} 
+            transition={{
+              repeat: isAwake ? Infinity : 0,
+              repeatDelay: 4,
+              duration: 0.2
+            }}
+            style={{ transformOrigin: '155px 55px' }}
+          >
+            <RightEye />
+          </motion.g>
         </motion.g>
 
         {/* Nose */}
