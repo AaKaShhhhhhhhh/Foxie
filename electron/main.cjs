@@ -37,15 +37,54 @@ app.whenReady().then(() => {
 
   // LLM proxy handler - simple fetch using environment LLM_API_KEY
   ipcMain.handle('invoke-llm', async (_ev, payload) => {
-    const key = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY || '';
+    const provider = process.env.LLM_PROVIDER || 'tambo';
+    const key =
+      process.env.TAMBO_API_KEY ||
+      process.env.LLM_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      '';
+
     if (!key) return { error: 'LLM API key not configured on host' };
+
+    const baseUrl =
+      process.env.TAMBO_API_ENDPOINT ||
+      process.env.LLM_BASE_URL ||
+      (provider === 'openai' ? 'https://api.openai.com/v1' : 'https://api.tambo.ai/v1');
+
     try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const endpoint = `${String(baseUrl).replace(/\/$/, '')}/chat/completions`;
+
+      const prompt = typeof payload?.prompt === 'string' ? payload.prompt : '';
+      const rawMessages = Array.isArray(payload?.messages) ? payload.messages : null;
+      const messages = rawMessages?.length
+        ? rawMessages.filter(
+            (m) =>
+              m &&
+              typeof m === 'object' &&
+              typeof m.role === 'string' &&
+              typeof m.content === 'string'
+          )
+        : [{ role: 'user', content: prompt }];
+
+      const model =
+        payload.model || (provider === 'openai' ? 'gpt-4o-mini' : 'gpt-5.2');
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify({ model: payload.model || 'gpt-4o-mini', messages: [{ role: 'user', content: payload.prompt }], max_tokens: 512 }),
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: payload.temperature ?? 0.7,
+          max_tokens: payload.max_tokens ?? 1024,
+        }),
       });
       const json = await res.json();
+
+      if (!res.ok) {
+        return { error: `LLM request failed: ${res.status} ${res.statusText}`, data: json };
+      }
+
       return { data: json };
     } catch (err) {
       return { error: String(err) };
