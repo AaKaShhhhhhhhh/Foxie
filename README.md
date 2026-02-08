@@ -104,4 +104,5 @@ e:/Foxie
 ---
 
 ### NOTE
-Please use chrome browser to properly run Foxie.
+- Please use chrome or edge browser to properly run Foxie.
+- Clear your browser cache and cookies before running Foxie. 
