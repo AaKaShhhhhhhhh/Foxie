@@ -1,237 +1,89 @@
-# 🦊 Foxie - Windows-like Desktop with Emotional AI Pet Assistant
+# 🦊 Foxie - Sentient AI Desktop Companion
 
-A modern web-based desktop environment featuring an emotional AI pet companion powered by Tambo and Charlie LLM.
+A premium web-based desktop environment featuring an emotionally intelligent, autonomous AI pet companion. Foxie doesn't just react—he lives, wanders, and evolves alongside you.
 
 ## ✨ Features
 
-- **Windows-like Desktop UI**: Fullscreen desktop with taskbar, start menu, and draggable windows
-- **Emotional AI Pet**: Foxie the pet responds to your activity with 5 moods:
-  - 😊 **Happy**: When you're being productive
-  - 😔 **Bored**: When you're inactive
-  - 🎉 **Excited**: When you have multiple windows open
-  - 😴 **Tired**: When you have no windows open
-  - ⚠️ **Angry**: For system warnings
-
-- **Productivity Apps**:
-  - 📝 **Notes**: Quick note-taking app
-  - 🍅 **Pomodoro Timer**: 25-min focus sessions with 5-min breaks
-  - ✓ **Task Manager**: Create and track tasks
-
-- **Adaptive UI**: Tambo AI decides which UI components to show based on your intent
-- **Smart Notifications**: Real-time feedback and pet messages (top-right corner)
-- **Natural Interactions**: Charlie LLM generates contextual pet responses
+- **Sentient AI Pet**: Foxie the fox is powered by an ultimate behavior state machine:
+  - 🧠 **Autonomous Behavior**: Wanders, sits, sleeps, and interacts independently.
+  - ❤️ **5D Emotion System**: Tracks Energy, Happiness, Focus, Stress, and Trust.
+  - 🎭 **8+ Core Moods**: Happy, Excited, Angry, Sad, Bored, Sleepy, Thinking, and Neutral.
+  - 🩹 **Health System**: Real-time health monitoring (Excellent to Poor).
+- **Advanced Interaction**:
+  - ✋ **Hand Tracking**: MediaPipe-powered gesture recognition (Wave, Thumbs Up, Sniff).
+  - 🎙️ **Voice UI**: Wake phrase "Hey Foxie" and natural language commands.
+  - 💬 **Contextual Chat**: Interactive speech bubbles and AI-generated responses.
+- **Productivity Desktop**:
+  - 🖥️ **Windows 11 Aesthetics**: Dark/Light mode support, glassmorphism, and smooth animations.
+  - 📊 **Productivity Dashboard**: Daily activity tracking, goal progress, and focus sessions.
+  - 🛠️ **Utility Apps**: Notes, Task Manager, Calculator, Weather, Browser, and Pomodoro Timer.
 
 ## 🛠️ Tech Stack
 
-- **React 18** + Vite (lightning-fast dev server)
-- **@tambo-ai/react**: Adaptive UI components
-- **Framer Motion**: Smooth animations
-- **Charlie LLM**: Natural language reasoning
-- **MediaPipe**: Hand/webcam detection (future)
-- **UUID**: Unique ID generation
-- **Howler.js**: Audio (future)
+- **React 19** + Vite (Next-gen frontend performance)
+- **MediaPipe Hands**: Real-time 21-point landmark detection
+- **Framer Motion**: Fluid animations and spring physics
+- **Tambo & Charlie AI**: Adaptive UI and natural language reasoning
+- **Howler.js & Web Audio API**: Immersive soundscapes and mood-based audio
+- **Zod & UUID**: Robust data validation and identification
 
-## 📦 Installation
+## 📦 Getting Started
 
 ### Prerequisites
-- Node.js 16+
+- Node.js 18+
 - npm or yarn
 
 ### Setup
 
-1. **Install dependencies**:
+1. **Clone & Install**:
 ```bash
 npm install
 ```
 
-Dependencies were pre-installed:
-- `@tambo-ai/react` - Adaptive UI
-- `@mediapipe/hands @mediapipe/camera_utils` - Hand tracking
-- `framer-motion` - Animations
-- `uuid` - ID generation
-- `howler` - Audio
-
-2. **Configure Environment Variables**:
-
-Copy `.env.example` to `.env.local` and fill in your Charlie API credentials:
-
+2. **Configure Environment**:
+Copy `.env.example` to `.env` and add your API keys:
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local`:
-```
-VITE_CHARLIE_API_KEY=your_charlie_api_key_here
-VITE_CHARLIE_API_ENDPOINT=https://api.charlie-ai.com/v1
-VITE_TAMBO_API_KEY=your_tambo_api_key_here (optional)
-```
-
-**Get your Charlie API key**: https://charlie-ai.com
-
-3. **Start Development Server**:
+3. **Launch**:
 ```bash
 npm run dev
 ```
+3. **Launch backend**:
+```bash
+cd backend
+npm start
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:5173](http://localhost:5173) and interact with Foxie ✋
 
 ## 📂 Project Structure
 
 ```
 src/
 ├── components/
-│   ├── Desktop.jsx          # Main desktop container
-│   ├── Taskbar.jsx          # Windows-style taskbar with clock
-│   ├── StartMenu.jsx        # App launcher menu
-│   ├── Window.jsx           # Draggable window container
-│   ├── PetAssistant.jsx     # Foxie the AI pet
-│   ├── Notifications.jsx    # Notification toasts
-│   └── apps/
-│       ├── Notes.jsx        # Notes app
-│       ├── Pomodoro.jsx     # Pomodoro timer
-│       └── Tasks.jsx        # Task manager
-├── ai/
-│   └── charlie.js           # Charlie LLM API client
-├── tambo/
-│   └── registry.js          # Tambo adaptive UI registry
+│   ├── Desktop.jsx          # Core desktop shell
+│   ├── FoxieAvatar.jsx      # High-fidelity pet rendering
+│   ├── PetAssistantUltimate.jsx # Core AI behavior engine
+│   ├── FoxieVoiceUI.jsx     # Voice recognition interface
+│   ├── ProductivityDashboard.jsx # Stats & Goal tracking
+│   ├── Taskbar.jsx          # Windows-style taskbar
+│   └── apps/                # Built-in productivity tools
+├── hooks/
+│   ├── useFoxAutonomy.js    # Movement & AI decision logic
+│   ├── useEmotions.js       # Emotional state management
+│   └── usePetSounds.js      # Adaptive audio engine
 ├── styles/
-│   └── main.css             # All styles (modern Windows design)
-├── App.jsx                  # Root component
-└── main.jsx                 # Vite entry point
+│   └── main.css             # Unified premium design system
+└── App.jsx                  # Main entry point
 ```
 
-## 🚀 Usage
+## 🚀 Key Interactions
 
-### Opening Apps
-1. Click the **Start** button in the taskbar
-2. Click on an app icon (Notes, Pomodoro, Task Manager)
-3. Drag windows by their titlebar
-4. Close/minimize windows with the controls
-
-### Interacting with Foxie
-- Foxie automatically changes mood based on your activity
-- He'll send messages and react to your actions
-- Hover over Foxie to see his current mood
-- The more you work, the happier he becomes!
-
-### Task Management
-- **Notes**: Jot down quick thoughts
-- **Pomodoro**: Focus for 25 mins, then break for 5 mins
-- **Tasks**: Add, complete, and delete tasks
-
-## 🧠 AI Integration
-
-### Charlie LLM Features
-- Generates natural pet responses
-- Reasons about user state and mood
-- Creates contextual suggestions
-
-### Tambo Adaptive UI
-- Detects user intent automatically
-- Shows relevant components based on activity
-- Prioritizes notifications and UI elements
-
-Example:
-```javascript
-// Charlie generates pet responses
-const response = await getPetResponse('happy', { windowsOpen: 3 });
-// Returns: "You're on fire today! 🔥"
-
-// Tambo selects adaptive UI
-const adaptiveUI = getAdaptiveUI({ userActive: true, windowsOpen: 2 });
-// Returns: { intent: 'productivity.taskFocus', component: 'Pomodoro', ... }
-```
-
-## 🎨 Customization
-
-### Change Pet Emojis
-Edit `src/components/PetAssistant.jsx`:
-```javascript
-const moodEmoji = {
-  happy: '😊',      // Change these
-  bored: '😔',
-  excited: '🎉',
-  // ...
-};
-```
-
-### Modify Colors
-Edit `src/styles/main.css` - look for CSS variables and gradients
-
-### Add New Apps
-1. Create `src/components/apps/MyApp.jsx`
-2. Add to start menu in `Desktop.jsx`
-3. Add render logic in `renderAppContent()`
-
-## 📝 Available Scripts
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint code (if ESLint configured)
-npm run lint
-```
-
-## 🔧 Development Tips
-
-- **Hot Module Replacement (HMR)**: Changes auto-reload in browser
-- **Component Isolation**: Each component is independent
-- **State Management**: Uses React hooks (useState, useEffect)
-- **CSS Modules**: All styles in `src/styles/main.css`
-
-## 🐛 Troubleshooting
-
-### App won't load?
-- Check that `npm run dev` is running
-- Clear browser cache (Ctrl+Shift+Delete)
-- Check console for errors (F12 → Console tab)
-
-### Charlie API not working?
-- Verify `VITE_CHARLIE_API_KEY` is set in `.env.local`
-- Check your Charlie account balance
-- Test API manually: `curl -H "Authorization: Bearer YOUR_KEY" https://api.charlie-ai.com/v1/...`
-
-### Pet not reacting?
-- Ensure you have windows open
-- Move your mouse to trigger activity detection
-- Check browser console for errors
-
-## 🚧 Planned Features
-
-- [ ] Webcam hand gesture recognition
-- [ ] Sound/audio responses from pet
-- [ ] Persistent storage (localStorage)
-- [ ] Dark mode
-- [ ] Multi-pet support
-- [ ] Custom pet skins
-- [ ] Voice commands
-- [ ] Screen sharing integration
-
-## 📄 License
-
-MIT
-
-## 🤝 Contributing
-
-Contributions welcome! Feel free to:
-- Report bugs
-- Suggest features
-- Submit PRs
-
-## 📞 Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review the code comments
-3. Check browser console for errors
+- **Wake Foxie**: Say "Hey Foxie" or type it in the taskbar command.
+- **Interact**: Use hand gestures (Wave, Thumbs Up) or click/drag Foxie.
+- **Manage**: Open the **Dashboard** from the Start Menu to track your productivity.
+- **Personalize**: Access **Settings** to toggle themes and optimize your experience.
 
 ---
 
-**Made with ❤️ by Foxie Desktop Team**
