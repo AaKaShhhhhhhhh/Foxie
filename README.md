@@ -1,24 +1,24 @@
-# 🦊 Foxie - Sentient AI Desktop Companion
+# Foxie - Sentient AI Desktop Companion
 
 A premium web-based desktop environment featuring an emotionally intelligent, autonomous AI pet companion. Foxie doesn't just react—he lives, wanders, and evolves alongside you.
 
-## ✨ Features
+## Features
 
 - **Sentient AI Pet**: Foxie the fox is powered by an ultimate behavior state machine:
-  - 🧠 **Autonomous Behavior**: Wanders, sits, sleeps, and interacts independently.
-  - ❤️ **5D Emotion System**: Tracks Energy, Happiness, Focus, Stress, and Trust.
-  - 🎭 **8+ Core Moods**: Happy, Excited, Angry, Sad, Bored, Sleepy, Thinking, and Neutral.
-  - 🩹 **Health System**: Real-time health monitoring (Excellent to Poor).
+  - **Autonomous Behavior**: Wanders, sits, sleeps, and interacts independently.
+  - **5D Emotion System**: Tracks Energy, Happiness, Focus, Stress, and Trust.
+  - **8+ Core Moods**: Happy, Excited, Angry, Sad, Bored, Sleepy, Thinking, and Neutral.
+  - **Health System**: Real-time health monitoring (Excellent to Poor).
 - **Advanced Interaction**:
-  - ✋ **Hand Tracking**: MediaPipe-powered gesture recognition (Wave, Thumbs Up, Sniff).
-  - 🎙️ **Voice UI**: Wake phrase "Hey Foxie" and natural language commands.
-  - 💬 **Contextual Chat**: Interactive speech bubbles and AI-generated responses.
+  - **Hand Tracking**: MediaPipe-powered gesture recognition (Wave, Thumbs Up, Sniff).
+  - **Voice UI**: Wake phrase "Hey Foxie" and natural language commands.
+  - **Contextual Chat**: Interactive speech bubbles and AI-generated responses.
 - **Productivity Desktop**:
-  - 🖥️ **Windows 11 Aesthetics**: Dark/Light mode support, glassmorphism, and smooth animations.
-  - 📊 **Productivity Dashboard**: Daily activity tracking, goal progress, and focus sessions.
-  - 🛠️ **Utility Apps**: Notes, Task Manager, Calculator, Weather, Browser, and Pomodoro Timer.
+  - **Windows 11 Aesthetics**: Dark/Light mode support, glassmorphism, and smooth animations.
+  - **Productivity Dashboard**: Daily activity tracking, goal progress, and focus sessions.
+  - **Utility Apps**: Notes, Task Manager, Calculator, Weather, Browser, and Pomodoro Timer.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **React 19** + Vite (Next-gen frontend performance)
 - **MediaPipe Hands**: Real-time 21-point landmark detection
@@ -27,7 +27,7 @@ A premium web-based desktop environment featuring an emotionally intelligent, au
 - **Howler.js & Web Audio API**: Immersive soundscapes and mood-based audio
 - **Zod & UUID**: Robust data validation and identification
 
-## 📦 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -57,7 +57,7 @@ npm start
 
 Open [http://localhost:5173](http://localhost:5173) and interact with Foxie ✋
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 src/
@@ -78,7 +78,7 @@ src/
 └── App.jsx                  # Main entry point
 ```
 
-## 🚀 Key Interactions
+## Key Interactions
 
 - **Wake Foxie**: Say "Hey Foxie" or type it in the taskbar command.
 - **Interact**: Use hand gestures (Wave, Thumbs Up) or click/drag Foxie.
