@@ -58,6 +58,7 @@ const Desktop = () => {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
+  const [foxieEmotion, setFoxieEmotion] = useState('neutral'); // AI-detected emotion
   const [timerState, setTimerState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work', commandId: null });
   const foxieSleepTimerRef = useRef(null);
   const windowsRef = useRef(windows); // Track latest windows for closures
@@ -404,6 +405,13 @@ const Desktop = () => {
         addNotification(command.text, 2000);
         break;
       case 'CHAT':
+        // Set emotion from AI response
+        if (command.emotion) {
+          setFoxieEmotion(command.emotion);
+          // Reset emotion after 10 seconds
+          setTimeout(() => setFoxieEmotion('neutral'), 10000);
+        }
+        
         // Route long responses to PreviewWindow, short ones to notification
         const LONG_RESPONSE_THRESHOLD = 100; // characters
         const responseText = command.text || '';
@@ -529,6 +537,7 @@ const Desktop = () => {
           <ErrorBoundary fallback={null}>
             <FoxieAvatar
               mood={foxieMood}
+              emotion={foxieEmotion}
               isAwake={foxieAwake}
               isListening={foxieListening}
               lastCommand={lastFoxieCommand}

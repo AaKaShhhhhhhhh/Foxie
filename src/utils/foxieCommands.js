@@ -226,11 +226,37 @@ export const parseFoxieCommand = async (transcript) => {
     try {
         console.log('FoxieCommands: No match, responding with AI chat...');
 
-        const prompt = `You are Foxie, a helpful desktop assistant and virtual pet fox. Reply concisely and stay in character. If the user asks a math question, provide ONLY the final numerical answer without showing steps or reasoning.\n\nUser: ${transcript}`;
+        const prompt = `You are Foxie, a helpful desktop assistant and virtual pet fox. Reply concisely and stay in character. 
+At the END of your response, add a line with the detected user emotion in format: [EMOTION: happy/sad/excited/confused/frustrated/neutral]
+
+User: ${transcript}`;
         const response = await callLLM(prompt);
-        return { type: 'CHAT', text: response.text };
+        
+        // Extract emotion from response
+        const emotionMatch = response.text.match(/\[EMOTION:\s*(happy|sad|excited|confused|frustrated|neutral|empathetic|curious|concerned|joyful)\]/i);
+        let emotion = 'neutral';
+        let cleanText = response.text;
+        
+        if (emotionMatch) {
+            emotion = emotionMatch[1].toLowerCase();
+            cleanText = response.text.replace(emotionMatch[0], '').trim();
+        } else {
+            // Fallback: detect emotion from user input
+            const inputLower = transcript.toLowerCase();
+            if (inputLower.includes('sad') || inputLower.includes('depressed') || inputLower.includes('unhappy') || inputLower.includes('crying')) {
+                emotion = 'empathetic';
+            } else if (inputLower.includes('happy') || inputLower.includes('excited') || inputLower.includes('great') || inputLower.includes('awesome')) {
+                emotion = 'joyful';
+            } else if (inputLower.includes('confused') || inputLower.includes('don\'t understand') || inputLower.includes('what')) {
+                emotion = 'curious';
+            } else if (inputLower.includes('angry') || inputLower.includes('frustrated') || inputLower.includes('annoyed')) {
+                emotion = 'concerned';
+            }
+        }
+        
+        return { type: 'CHAT', text: cleanText, emotion };
     } catch (error) {
         console.error('AI Chat Failed:', error);
-        return { type: 'CHAT', text: "I'm here to help, but I couldn't reach my AI brain right now." };
+        return { type: 'CHAT', text: "I'm here to help, but I couldn't reach my AI brain right now.", emotion: 'concerned' };
     }
 };

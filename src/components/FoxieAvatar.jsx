@@ -8,6 +8,7 @@ import FoxieAvatarSVG from './FoxieAvatarSVG';
  */
 const FoxieAvatar = ({
   mood = 'happy',
+  emotion = 'neutral', // AI-detected emotion from chat
   isAwake = true,
   isListening = false,
   lastCommand = null,
@@ -173,6 +174,59 @@ const FoxieAvatar = ({
       }, 3000);
     }
   }, [lastCommand]);
+
+  /**
+   * React to AI-detected emotions
+   */
+  useEffect(() => {
+    if (!emotion || emotion === 'neutral') return;
+
+    const emotionReactions = {
+      empathetic: () => {
+        setCurrentAnimation('love');
+        setThought('*looks concerned* I\'m here for you... 💙');
+      },
+      sad: () => {
+        setCurrentAnimation('love');
+        setThought('*nuzzles gently* It\'s okay... 🫂');
+      },
+      joyful: () => {
+        setCurrentAnimation('playful');
+        setThought('*happy dance* Yay! 🎉');
+      },
+      excited: () => {
+        setCurrentAnimation('jumping');
+        setThought('*bounces excitedly* So exciting! ✨');
+      },
+      curious: () => {
+        setCurrentAnimation('alert');
+        setThought('*tilts head* Hmm? 🤔');
+      },
+      confused: () => {
+        setCurrentAnimation('alert');
+        setThought('*head tilt* Let me help clarify! 🦊');
+      },
+      concerned: () => {
+        setCurrentAnimation('alert');
+        setThought('*ears perk up* I\'m listening... 👂');
+      },
+      frustrated: () => {
+        setCurrentAnimation('alert');
+        setThought('*supportive nod* I understand... 💪');
+      },
+    };
+
+    const reaction = emotionReactions[emotion];
+    if (reaction) {
+      reaction();
+      // Clear after delay
+      if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
+      thoughtTimeoutRef.current = setTimeout(() => {
+        setThought(null);
+        setCurrentAnimation('idle');
+      }, 5000);
+    }
+  }, [emotion]);
 
   /**
    * Autonomous wandering
@@ -515,7 +569,7 @@ const FoxieAvatar = ({
         }}
       >
         <FoxieAvatarSVG
-          mood={isTimerMode ? 'timer' : (currentAnimation === 'idle' ? mood : currentAnimation)}
+          mood={isTimerMode ? 'timer' : (emotion !== 'neutral' ? emotion : (currentAnimation === 'idle' ? mood : currentAnimation))}
           isListening={isListening}
           isAwake={isAwake}
           eyeOffset={eyeOffset}
