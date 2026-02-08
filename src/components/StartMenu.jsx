@@ -4,13 +4,13 @@ const StartMenu = ({ onOpenApp, onClose }) => {
   const apps = [
     { name: 'Foxie Assistant', icon: '🦊' },
     { name: 'Dashboard', icon: '📊' },
-    { name: 'Notes', icon: '📝' },
-    { name: 'Pomodoro', icon: '🍅' },
-    { name: 'Tasks', icon: '✓' },
-    { name: 'Calculator', icon: '🧮' },
-    { name: 'Weather', icon: '🌤️' },
-    { name: 'Browser', icon: '🌐' },
-    { name: 'Settings', icon: '⚙️' },
+    { name: 'Notes', icon: '' },
+    { name: 'Timer', icon: '' },
+    { name: 'Tasks', icon: '' },
+    { name: 'Calculator', icon: '' },
+    { name: 'Weather', icon: '' },
+    { name: 'Browser', icon: '' },
+    { name: 'Settings', icon: '' },
   ];
 
   return (

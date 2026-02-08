@@ -133,6 +133,7 @@ function parseTamboInsight(insight) {
 
   if (
     insightLower.includes('focus') ||
+    insightLower.includes('timer') ||
     insightLower.includes('pomodoro') ||
     insightLower.includes('concentrate')
   ) {

@@ -76,9 +76,9 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
     }
     if (mood === 'dizzy') {
       return (
-        <motion.path 
-          d="M 145 55 A 10 10 0 1 1 165 55 A 10 10 0 1 1 145 55" 
-          stroke="#3d2b1f" strokeWidth="2" fill="none" 
+        <motion.path
+          d="M 145 55 A 10 10 0 1 1 165 55 A 10 10 0 1 1 145 55"
+          stroke="#3d2b1f" strokeWidth="2" fill="none"
           strokeDasharray="4 2"
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -102,9 +102,9 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
     }
     if (mood === 'dizzy') {
       return (
-        <motion.path 
-          d="M 35 55 A 10 10 0 1 1 55 55 A 10 10 0 1 1 35 55" 
-          stroke="#3d2b1f" strokeWidth="2" fill="none" 
+        <motion.path
+          d="M 35 55 A 10 10 0 1 1 55 55 A 10 10 0 1 1 35 55"
+          stroke="#3d2b1f" strokeWidth="2" fill="none"
           strokeDasharray="4 2"
           animate={{ rotate: -360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -157,7 +157,7 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
         } : (mood === 'excited' ? {
           scale: [1, 1.05, 1],
         } : { scale: 1, y: 0 })}
-        transition={{ 
+        transition={{
           duration: mood === 'jumping' ? 0.6 : 1.5,
           repeat: mood === 'excited' ? Infinity : 0,
           ease: "easeInOut"
@@ -165,11 +165,11 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
         style={{ originY: "180px" }}
       >
         {/* Tail */}
-        <motion.path 
-          d="M 190 150 Q 230 180 210 120" 
-          fill="url(#foxGradient)" 
-          stroke="#C2410C" 
-          strokeWidth="2" 
+        <motion.path
+          d="M 190 150 Q 230 180 210 120"
+          fill="url(#foxGradient)"
+          stroke="#C2410C"
+          strokeWidth="2"
           strokeLinejoin="round"
           animate={mood === 'happy' || mood === 'excited' || mood === 'playful' ? {
             rotate: [0, 20, -20, 0],
@@ -196,17 +196,17 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
         <path d="M 10 100 Q 10 150 50 170 Q 100 180 150 170 Q 190 150 190 100 Q 150 130 100 130 Q 50 130 10 100" fill="#FFF7ED" />
 
         {/* Eyes with Blinking & Tracking */}
-        <motion.g 
-          animate={{ 
+        <motion.g
+          animate={{
             x: eyeOffset.x,
             y: eyeOffset.y
           }}
           transition={{ type: 'spring', stiffness: 200, damping: 30 }}
         >
-          <motion.g 
-            animate={{ 
-              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
-            }} 
+          <motion.g
+            animate={{
+              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1
+            }}
             transition={{
               repeat: isAwake ? Infinity : 0,
               repeatDelay: 4,
@@ -216,10 +216,10 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
           >
             <LeftEye />
           </motion.g>
-          <motion.g 
-            animate={{ 
-              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1 
-            }} 
+          <motion.g
+            animate={{
+              scaleY: isAwake ? [1, 1, 0.1, 1] : 0.1
+            }}
             transition={{
               repeat: isAwake ? Infinity : 0,
               repeatDelay: 4,
@@ -246,8 +246,8 @@ const FoxieAvatarSVG = ({ mood, isListening, isAwake, eyeOffset = { x: 0, y: 0 }
           </>
         )}
 
-        {/* Pomodoro Clock Overlay */}
-        {mood === 'pomodoro' && (
+        {/* Timer Clock Overlay */}
+        {mood === 'timer' && (
           <g>
             {/* Clock Face Background (Chest/Belly area) */}
             <circle cx="100" cy="150" r="25" fill="#fff" stroke="#3d2b1f" strokeWidth="2" />

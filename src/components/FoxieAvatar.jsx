@@ -13,7 +13,7 @@ const FoxieAvatar = ({
   lastCommand = null,
   onInteraction,
   onCommand, // Added prop for chat
-  pomodoroState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
+  timerState = { isRunning: false, timeLeft: 0, sessionType: 'work' }
 }) => {
   // Position and animation state
   const [position, setPosition] = useState({ x: 80, y: 70 }); // Default bottom-rightish
@@ -23,13 +23,13 @@ const FoxieAvatar = ({
   const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
 
 
-  // Pomodoro Mode Derived State
-  const isPomodoroMode = pomodoroState?.isRunning;
+  // Timer Mode Derived State
+  const isTimerMode = timerState?.isRunning;
 
   // Refs
   const thoughtTimeoutRef = useRef(null);
   const wanderIntervalRef = useRef(null);
-  const pomodoroActiveRef = useRef(false);
+  const timerActiveRef = useRef(false);
   const hoverTimerRef = useRef(null);
   const shakeStartRef = useRef(null);
 
@@ -160,7 +160,7 @@ const FoxieAvatar = ({
         const cleaned = lastCommand.text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, (match, offset, string) => {
           // Keep only first 2 emojis if they are grouped or something? Or just limit?
           // User asked to remove "unnecessary" emojis. Let's just strip most if they are excessive.
-          return (offset < 2) ? match : ''; 
+          return (offset < 2) ? match : '';
         });
         setThought(cleaned);
       }
@@ -179,7 +179,7 @@ const FoxieAvatar = ({
    * Only wander if awake and idle
    */
   useEffect(() => {
-    if (!isAwake || currentAnimation !== 'idle' || isPomodoroMode) return;
+    if (!isAwake || currentAnimation !== 'idle' || isTimerMode) return;
 
     wanderIntervalRef.current = setInterval(() => {
       // 30% chance to move every 10 seconds
@@ -234,10 +234,10 @@ const FoxieAvatar = ({
       const dx = e.clientX - avatarRect.x;
       const dy = e.clientY - avatarRect.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Max displacement (pupil radius - eye radius approx)
-      const maxOffset = 5; 
-      
+      const maxOffset = 5;
+
       if (distance > 0) {
         // Limit movement to maxOffset
         const scale = Math.min(maxOffset, distance * 0.05) / distance;
@@ -256,20 +256,20 @@ const FoxieAvatar = ({
    * Pomodoro Mode Logic
    */
   useEffect(() => {
-    if (isPomodoroMode) {
-      const isEnteringPomodoro = !pomodoroActiveRef.current;
-      pomodoroActiveRef.current = true;
+    if (isTimerMode) {
+      const isEnteringTimer = !timerActiveRef.current;
+      timerActiveRef.current = true;
 
       const syncTimeout = setTimeout(() => {
-        if (isEnteringPomodoro) {
+        if (isEnteringTimer) {
           // Move to side and look like a clock
           setTargetPosition({ x: 92, y: 50 });
-          setCurrentAnimation('pomodoro');
+          setCurrentAnimation('timer');
         }
 
         // Initial encouragement
         setThought(
-          pomodoroState.sessionType === 'work'
+          timerState.sessionType === 'work'
             ? "Focus time! I'll keep watch. ⏱️"
             : "Relax! Take a deep breath. ☕"
         );
@@ -281,8 +281,8 @@ const FoxieAvatar = ({
         clearTimeout(syncTimeout);
         clearTimeout(clearThoughtTimeout);
       };
-    } else if (pomodoroActiveRef.current) {
-      pomodoroActiveRef.current = false;
+    } else if (timerActiveRef.current) {
+      timerActiveRef.current = false;
 
       // Reset when stopping
       const resetTimeout = setTimeout(() => {
@@ -292,15 +292,15 @@ const FoxieAvatar = ({
 
       return () => clearTimeout(resetTimeout);
     }
-  }, [isPomodoroMode, pomodoroState.sessionType]);
+  }, [isTimerMode, timerState.sessionType]);
 
-  // Periodic Pomodoro Checks (every 5 mins approx, or based on time left)
+  // Periodic Timer Checks (every 5 mins approx, or based on time left)
   useEffect(() => {
-    if (!isPomodoroMode) return;
+    if (!isTimerMode) return;
 
     // Check periodically on specific time markers roughly
-    const minsLeft = Math.floor(pomodoroState.timeLeft / 60);
-    const secsLeft = pomodoroState.timeLeft % 60;
+    const minsLeft = Math.floor(timerState.timeLeft / 60);
+    const secsLeft = timerState.timeLeft % 60;
 
     let encouragementTimeout = null;
     let clearThoughtTimeout = null;
@@ -317,7 +317,7 @@ const FoxieAvatar = ({
       if (encouragementTimeout) clearTimeout(encouragementTimeout);
       if (clearThoughtTimeout) clearTimeout(clearThoughtTimeout);
     };
-  }, [pomodoroState.timeLeft, isPomodoroMode]);
+  }, [timerState.timeLeft, isTimerMode]);
 
   /**
    * Animation Variants
@@ -414,7 +414,7 @@ const FoxieAvatar = ({
   const handleDrag = (event, info) => {
     // Detect shake (high velocity)
     const velocity = Math.sqrt(info.velocity.x ** 2 + info.velocity.y ** 2);
-    
+
     if (velocity > 800) {
       if (!shakeStartRef.current) {
         shakeStartRef.current = Date.now();
@@ -422,7 +422,7 @@ const FoxieAvatar = ({
         // Sustained shake for 1.5s
         setCurrentAnimation('dizzy');
         setThought('Whoa... dizzy... 😵');
-        
+
         // Stay dizzy for 2 seconds after shake stops
         if (thoughtTimeoutRef.current) clearTimeout(thoughtTimeoutRef.current);
         thoughtTimeoutRef.current = setTimeout(() => {
@@ -515,7 +515,7 @@ const FoxieAvatar = ({
         }}
       >
         <FoxieAvatarSVG
-          mood={isPomodoroMode ? 'pomodoro' : (currentAnimation === 'idle' ? mood : currentAnimation)}
+          mood={isTimerMode ? 'timer' : (currentAnimation === 'idle' ? mood : currentAnimation)}
           isListening={isListening}
           isAwake={isAwake}
           eyeOffset={eyeOffset}
@@ -546,8 +546,8 @@ const FoxieAvatar = ({
                 </form>
               ) : (
                 <>
-                  <button 
-                    className="close-thought-btn" 
+                  <button
+                    className="close-thought-btn"
                     onClick={(e) => {
                       e.stopPropagation();
                       setThought(null);

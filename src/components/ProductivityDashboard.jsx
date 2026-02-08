@@ -170,12 +170,12 @@ const ProductivityDashboard = ({ onOpenApp }) => {
 
     const component = adaptiveUI?.component;
     const componentToAppName = {
-      Pomodoro: 'Pomodoro',
+      Timer: 'Timer',
       Notes: 'Notes',
       TaskManager: 'Task Manager',
     };
 
-    const fallbackApp = 'Pomodoro';
+    const fallbackApp = 'Timer';
     onOpenApp(componentToAppName[component] || fallbackApp);
   }, [adaptiveUI?.component, onOpenApp]);
 
@@ -246,10 +246,10 @@ const ProductivityDashboard = ({ onOpenApp }) => {
                   role="menuitem"
                   onClick={() => {
                     closeWidgetsMenu({ returnFocus: true });
-                    handleOpen('Pomodoro');
+                    handleOpen('Timer');
                   }}
                 >
-                  Pomodoro
+                  Timer
                 </button>
                 <button
                   className="dashboard-menu-item"
@@ -273,7 +273,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
 
       <div className="dashboard-layout">
         {/* Collapsible Sidebar */}
-        <MotionDiv 
+        <MotionDiv
           className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}
           initial={false}
           animate={{ width: sidebarOpen ? 260 : 0 }}
@@ -282,7 +282,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
           {sidebarOpen && (
             <div className="sidebar-content">
               <div className="sidebar-section">
-                <button 
+                <button
                   className={`sidebar-tab ${activeWidget === WIDGET_IDS.TIME ? 'active' : ''}`}
                   type="button"
                   aria-pressed={activeWidget === WIDGET_IDS.TIME}
@@ -290,7 +290,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
                 >
                   Time
                 </button>
-                <button 
+                <button
                   className={`sidebar-tab ${activeWidget === WIDGET_IDS.ACTIVITY ? 'active' : ''}`}
                   type="button"
                   aria-pressed={activeWidget === WIDGET_IDS.ACTIVITY}
@@ -298,7 +298,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
                 >
                   Activity
                 </button>
-                <button 
+                <button
                   className={`sidebar-tab ${activeWidget === WIDGET_IDS.NOTE ? 'active' : ''}`}
                   type="button"
                   aria-pressed={activeWidget === WIDGET_IDS.NOTE}
@@ -306,7 +306,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
                 >
                   Quick note
                 </button>
-                <button 
+                <button
                   className={`sidebar-tab ${activeWidget === WIDGET_IDS.TODAY ? 'active' : ''}`}
                   type="button"
                   aria-pressed={activeWidget === WIDGET_IDS.TODAY}
@@ -314,7 +314,7 @@ const ProductivityDashboard = ({ onOpenApp }) => {
                 >
                   Today
                 </button>
-                <button 
+                <button
                   className={`sidebar-tab ${activeWidget === WIDGET_IDS.INSIGHT ? 'active' : ''}`}
                   type="button"
                   aria-pressed={activeWidget === WIDGET_IDS.INSIGHT}

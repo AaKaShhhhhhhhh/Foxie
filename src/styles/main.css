@@ -486,7 +486,7 @@ body {
   background: #f9f9f9;
 }
 
-/* Pomodoro App */
+/* Timer App */
 .app-pomodoro {
   display: flex;
   flex-direction: column;
@@ -2026,7 +2026,7 @@ body {
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   padding: 12px 18px;
   border-radius: 16px;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.12),
     0 1px 1px rgba(255, 255, 255, 0.4) inset;
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -2046,8 +2046,15 @@ body {
 }
 
 @keyframes bubblePop {
-  from { transform: translateX(-50%) scale(0.8); opacity: 0; }
-  to { transform: translateX(-50%) scale(1); opacity: 1; }
+  from {
+    transform: translateX(-50%) scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
 }
 
 .foxie-dialogue-bubble::after {
@@ -2150,7 +2157,7 @@ body {
   flex-direction: column;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 240, 245, 0.95) 100%);
   border-radius: 12px;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
   backdrop-filter: blur(20px);
@@ -2240,9 +2247,17 @@ body {
   color: #1a1a1a;
 }
 
-.preview-window-markdown h1 { font-size: 1.5em; }
-.preview-window-markdown h2 { font-size: 1.3em; }
-.preview-window-markdown h3 { font-size: 1.15em; }
+.preview-window-markdown h1 {
+  font-size: 1.5em;
+}
+
+.preview-window-markdown h2 {
+  font-size: 1.3em;
+}
+
+.preview-window-markdown h3 {
+  font-size: 1.15em;
+}
 
 .preview-window-markdown p {
   margin-bottom: 0.75em;
@@ -2319,7 +2334,7 @@ body {
 @media (prefers-color-scheme: dark) {
   .preview-window {
     background: linear-gradient(135deg, rgba(40, 40, 45, 0.95) 0%, rgba(30, 30, 35, 0.95) 100%);
-    box-shadow: 
+    box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.4),
       0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   }
@@ -2765,11 +2780,11 @@ body {
   border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background-color: #0078d4;
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(20px);
 }
 

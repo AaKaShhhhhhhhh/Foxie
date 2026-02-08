@@ -11,7 +11,7 @@
 export const componentRegistry = {
   // Productivity components
   productivity: {
-    taskFocus: 'Pomodoro',
+    taskFocus: 'Timer',
     notesTaking: 'Notes',
     taskManagement: 'TaskManager',
   },
@@ -52,14 +52,14 @@ export function detectIntent(state, tamboInsight = null) {
   }
 
   // Fallback to heuristic detection
-  
+
   // User is idle for extended period
   if (!userActive && focusTime > 60) {
     return 'pet.greeting';
   }
 
   // User is in deep focus
-  if (windowsOpen === 1 && focusTime > 10 && lastAppOpened === 'Pomodoro') {
+  if (windowsOpen === 1 && focusTime > 10 && lastAppOpened === 'Timer') {
     return 'productivity.taskFocus';
   }
 
@@ -184,7 +184,7 @@ function shouldShowPet(intent) {
  */
 function generateSuggestedAction(intent) {
   const suggestions = {
-    'productivity.taskFocus': 'Stay focused! Your Pomodoro timer is ready.',
+    'productivity.taskFocus': 'Stay focused! Your Timer is ready.',
     'productivity.notesTaking': 'Great time to capture your thoughts.',
     'productivity.taskManagement': 'Organize your tasks to stay on track.',
     'pet.greeting': 'Foxie is waiting! Time for a quick chat?',

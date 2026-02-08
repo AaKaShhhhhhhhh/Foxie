@@ -11,11 +11,11 @@ const DesktopTopBar = (props) => {
   }, []);
 
   const menuItems = [
-    { label: 'Dashboard', app: 'Dashboard', icon: '📊' },
-    { label: 'Assistant', app: 'Foxie Assistant', icon: '🦊' },
-    { label: 'Notes', app: 'Notes', icon: '📝' },
-    { label: 'Pomodoro', app: 'Pomodoro', icon: '🍅' },
-    { label: 'Tasks', app: 'Task Manager', icon: '✓' },
+    { label: 'Dashboard', app: 'Dashboard', icon: '' },
+    { label: 'Assistant', app: 'Foxie Assistant', icon: '' },
+    { label: 'Notes', app: 'Notes', icon: '' },
+    { label: 'Timer', app: 'Timer', icon: '' },
+    { label: 'Tasks', app: 'Task Manager', icon: '' },
   ];
 
   return (

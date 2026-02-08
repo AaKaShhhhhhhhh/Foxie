@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Pomodoro = ({ onNotify, onTimerUpdate }) => {
+const Timer = ({ onNotify, onTimerUpdate }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState('work'); // 'work' or 'break'
@@ -54,7 +54,7 @@ const Pomodoro = ({ onNotify, onTimerUpdate }) => {
 
   return (
     <div className="app-pomodoro">
-      <h3>{sessionType === 'work' ? '🍅 Work' : '☕ Break'}</h3>
+      <h3>{sessionType === 'work' ? 'Work Timer' : 'Break'}</h3>
       <div className="timer-display">{formatTime(timeLeft)}</div>
       <div className="timer-controls">
         <button onClick={toggleTimer} className="btn-play-pause">
@@ -68,4 +68,4 @@ const Pomodoro = ({ onNotify, onTimerUpdate }) => {
   );
 };
 
-export default Pomodoro;
+export default Timer;

@@ -46,9 +46,9 @@ export const parseFoxieCommand = async (transcript) => {
             'task': 'Task Manager',
             'todo': 'Task Manager',
             'to-do': 'Task Manager',
-            'pomodoro': 'Pomodoro',
-            'timer': 'Pomodoro',
-            'clock': 'Pomodoro',
+            'pomodoro': 'Timer',
+            'timer': 'Timer',
+            'clock': 'Timer',
             'dashboard': 'Dashboard',
             'stats': 'Dashboard',
             'assistant': 'Foxie Assistant',
@@ -68,7 +68,7 @@ export const parseFoxieCommand = async (transcript) => {
         if (text.includes('all') || text.includes('everything') || text.includes('all apps')) {
             return { type: 'CLOSE_ALL', text: 'Closing all apps... 🧹' };
         }
-        
+
         const appMap = {
             'notes': 'Notes',
             'note': 'Notes',
@@ -78,9 +78,9 @@ export const parseFoxieCommand = async (transcript) => {
             'task manager': 'Tasks',
             'todo': 'Tasks',
             'to-do': 'Tasks',
-            'pomodoro': 'Pomodoro',
-            'timer': 'Pomodoro',
-            'clock': 'Pomodoro',
+            'pomodoro': 'Timer',
+            'timer': 'Timer',
+            'clock': 'Timer',
             'dashboard': 'Dashboard',
             'stats': 'Dashboard',
             'productivity': 'Dashboard',
@@ -101,7 +101,7 @@ export const parseFoxieCommand = async (transcript) => {
 
     // Start Timer: "start timer", "start pomodoro", "set timer for..."
     if (text.includes('start timer') || text.includes('start pomodoro') || text.includes('set timer') || text.includes('focus')) {
-         return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
+        return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
     }
 
     // Priority 3: AI Chat Fallback

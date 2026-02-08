@@ -12,7 +12,7 @@ import TamboUI from './TamboUI';
 import AssistantChat from './AssistantChat';
 import DesktopTopBar from './DesktopTopBar';
 import Notes from './apps/Notes';
-import Pomodoro from './apps/Pomodoro';
+import Timer from './apps/Timer';
 import Tasks from './apps/Tasks';
 import Calculator from './apps/Calculator';
 import Weather from './apps/Weather';
@@ -45,7 +45,7 @@ const Desktop = () => {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
-  const [pomodoroState, setPomodoroState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
+  const [timerState, setTimerState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
   const foxieSleepTimerRef = useRef(null);
   const windowsRef = useRef(windows); // Track latest windows for closures
 
@@ -76,20 +76,28 @@ const Desktop = () => {
   const ICON_STORAGE_KEY = 'foxie_desktop_icons';
   const defaultIcons = [
     { id: 'assistant', name: 'Foxie Assistant', icon: '🦊', x: 20, y: 68 },
-    { id: 'calculator', name: 'Calculator', icon: '🧮', x: 20, y: 168 },
-    { id: 'notes', name: 'Notes', icon: '📝', x: 20, y: 268 },
-    { id: 'weather', name: 'Weather', icon: '🌤️', x: 20, y: 368 },
-    { id: 'browser', name: 'Browser', icon: '🌐', x: 120, y: 68 },
-    { id: 'pomodoro', name: 'Pomodoro', icon: '🍅', x: 120, y: 168 },
-    { id: 'tasks', name: 'Tasks', icon: '✅', x: 120, y: 268 },
-    { id: 'dashboard', name: 'Dashboard', icon: '📊', x: 120, y: 368 },
-    { id: 'settings', name: 'Settings', icon: '⚙️', x: 220, y: 68 },
+    { id: 'calculator', name: 'Calculator', icon: '', x: 20, y: 168 },
+    { id: 'notes', name: 'Notes', icon: '', x: 20, y: 268 },
+    { id: 'weather', name: 'Weather', icon: '', x: 20, y: 368 },
+    { id: 'browser', name: 'Browser', icon: '', x: 120, y: 68 },
+    { id: 'timer', name: 'Timer', icon: '', x: 120, y: 168 },
+    { id: 'tasks', name: 'Tasks', icon: '', x: 120, y: 268 },
+    { id: 'dashboard', name: 'Dashboard', icon: '', x: 120, y: 368 },
+    { id: 'settings', name: 'Settings', icon: '', x: 220, y: 68 },
   ];
 
   const [iconPositions, setIconPositions] = useState(() => {
     try {
       const saved = localStorage.getItem(ICON_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : defaultIcons;
+      const parsed = saved ? JSON.parse(saved) : defaultIcons;
+
+      // Migration: Update old 'pomodoro' id or name to 'timer'
+      return parsed.map(icon => {
+        if (icon.id === 'pomodoro' || icon.name === 'Pomodoro') {
+          return { ...icon, id: 'timer', name: 'Timer' };
+        }
+        return icon;
+      });
     } catch (e) {
       return defaultIcons;
     }
@@ -213,8 +221,8 @@ const Desktop = () => {
         return <AssistantChat />;
       case 'Notes':
         return <Notes />;
-      case 'Pomodoro':
-        return <Pomodoro onNotify={addNotification} onTimerUpdate={setPomodoroState} />;
+      case 'Timer':
+        return <Timer onNotify={addNotification} onTimerUpdate={setTimerState} />;
       case 'Task Manager':
         return <Tasks />;
       case 'Dashboard':
@@ -328,15 +336,15 @@ const Desktop = () => {
         break;
       case 'START_TIMER':
         // Immediate visual feedback + open app
-        setPomodoroState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
-        openWindow('Pomodoro');
-        addNotification('⏱️ Starting Pomodoro Timer!', 2000);
+        setTimerState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
+        openWindow('Timer');
+        addNotification('⏱️ Starting Timer!', 2000);
         break;
       case 'CHAT':
         // Route long responses to PreviewWindow, short ones to notification
         const LONG_RESPONSE_THRESHOLD = 100; // characters
         const responseText = command.text || '';
-        
+
         if (responseText.length > LONG_RESPONSE_THRESHOLD) {
           // Open PreviewWindow with the full response
           setPreviewWindow({
@@ -460,7 +468,7 @@ const Desktop = () => {
               isListening={foxieListening}
               lastCommand={lastFoxieCommand}
               needs={needs}
-              pomodoroState={pomodoroState}
+              timerState={timerState}
               onInteraction={scheduleFoxieSleep}
               onCommand={(cmdText) => {
                 // Dynamically import parser
