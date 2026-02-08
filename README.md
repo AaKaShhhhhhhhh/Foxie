@@ -50,32 +50,48 @@ cp .env.example .env
 ```bash
 npm run dev
 ```
-3. **Launch backend**:
+4. **Launch backend**:
 ```bash
 cd backend
 npm start
+```
 
-Open [http://localhost:5173](http://localhost:5173) and interact with Foxie ✋
+Open [http://localhost:5173](http://localhost:5173) and interact with Foxie 
 
 ## Project Structure
 
 ```
-src/
-├── components/
-│   ├── Desktop.jsx          # Core desktop shell
-│   ├── FoxieAvatar.jsx      # High-fidelity pet rendering
-│   ├── PetAssistantUltimate.jsx # Core AI behavior engine
-│   ├── FoxieVoiceUI.jsx     # Voice recognition interface
-│   ├── ProductivityDashboard.jsx # Stats & Goal tracking
-│   ├── Taskbar.jsx          # Windows-style taskbar
-│   └── apps/                # Built-in productivity tools
-├── hooks/
-│   ├── useFoxAutonomy.js    # Movement & AI decision logic
-│   ├── useEmotions.js       # Emotional state management
-│   └── usePetSounds.js      # Adaptive audio engine
-├── styles/
-│   └── main.css             # Unified premium design system
-└── App.jsx                  # Main entry point
+e:/Foxie
+├── .env.example            # Environment configuration template
+├── backend/                # Backend server logic
+│   ├── server.js           # Main server entry point
+│   └── tools/              # Backend tools and utilities
+├── electron/               # Electron desktop wrapper
+│   ├── main.cjs            # Main process
+│   └── preload.cjs         # Preload script
+├── public/                 # Static assets
+├── scripts/                # Build and utility scripts
+├── src/                    # Frontend source code
+│   ├── ai/                 # AI Models & Logic
+│   │   ├── charlie.js      # Charlie AI integration
+│   │   └── tambo_llm.js    # Tambo LLM interface
+│   ├── components/         # React Components
+│   │   ├── apps/           # Productivity tools (Notes, Calculator, etc.)
+│   │   ├── Desktop.jsx     # Main desktop environment
+│   │   ├── FoxieAvatar.jsx # Interactive 3D/2D Avatar
+│   │   ├── FoxieVoiceUI.jsx # Voice command interface
+│   │   ├── PetAssistantUltimate.jsx # Core behavior engine
+│   │   └── ProductivityDashboard.jsx # User stats & goals
+│   ├── hooks/              # Custom React Hooks
+│   │   ├── useFoxAutonomy.js    # Movement & decision logic
+│   │   ├── useEmotions.js       # Emotional state system
+│   │   ├── useLifeSimulation.js # Health, hunger, sleep cycles
+│   │   └── usePetSounds.js      # Adaptive audio engine
+│   ├── tambo/              # Tambo Registry & Integration
+│   ├── utils/              # Helper functions
+│   ├── voice/              # Voice processing modules
+│   └── App.jsx             # Main application entry
+└── vite.config.js          # Vite configuration
 ```
 
 ## Key Interactions
