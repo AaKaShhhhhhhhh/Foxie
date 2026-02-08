@@ -103,3 +103,5 @@ e:/Foxie
 
 ---
 
+### NOTE
+Please use chrome browser to properly run Foxie.
