@@ -2,15 +2,15 @@ import React from 'react';
 
 const StartMenu = ({ onOpenApp, onClose }) => {
   const apps = [
-    { name: 'Foxie Assistant', icon: '' },
-    { name: 'Dashboard', icon: '' },
-    { name: 'Notes', icon: '' },
-    { name: 'Timer', icon: '' },
-    { name: 'Task Manager', icon: '' },
-    { name: 'Calculator', icon: '' },
-    { name: 'Weather', icon: '' },
-    { name: 'Browser', icon: '' },
-    { name: 'Settings', icon: '' },
+    { name: 'Foxie Assistant', icon: '🦊' },
+    { name: 'Dashboard', icon: '⚡' },
+    { name: 'Notes', icon: '📝' },
+    { name: 'Timer', icon: '⏱️' },
+    { name: 'Task Manager', icon: '📊' },
+    { name: 'Calculator', icon: '🧮' },
+    { name: 'Weather', icon: '🌤️' },
+    { name: 'Browser', icon: '🌐' },
+    { name: 'Settings', icon: '⚙️' },
   ];
 
   return (

@@ -132,14 +132,14 @@ const Desktop = () => {
   const ICON_STORAGE_KEY = 'foxie_desktop_icons';
   const defaultIcons = [
     { id: 'assistant', name: 'Foxie Assistant', icon: '🦊', x: 20, y: 68 },
-    { id: 'calculator', name: 'Calculator', icon: '', x: 20, y: 168 },
-    { id: 'notes', name: 'Notes', icon: '', x: 20, y: 268 },
-    { id: 'weather', name: 'Weather', icon: '', x: 20, y: 368 },
-    { id: 'browser', name: 'Browser', icon: '', x: 120, y: 68 },
-    { id: 'timer', name: 'Timer', icon: '', x: 120, y: 168 },
-    { id: 'tasks', name: 'Task Manager', icon: '', x: 120, y: 268 },
-    { id: 'dashboard', name: 'Dashboard', icon: '', x: 120, y: 368 },
-    { id: 'settings', name: 'Settings', icon: '', x: 220, y: 68 },
+    { id: 'calculator', name: 'Calculator', icon: '🧮', x: 20, y: 168 },
+    { id: 'notes', name: 'Notes', icon: '📝', x: 20, y: 268 },
+    { id: 'weather', name: 'Weather', icon: '🌤️', x: 20, y: 368 },
+    { id: 'browser', name: 'Browser', icon: '🌐', x: 120, y: 68 },
+    { id: 'timer', name: 'Timer', icon: '⏱️', x: 120, y: 168 },
+    { id: 'tasks', name: 'Task Manager', icon: '📊', x: 120, y: 268 },
+    { id: 'dashboard', name: 'Dashboard', icon: '⚡', x: 120, y: 368 },
+    { id: 'settings', name: 'Settings', icon: '⚙️', x: 220, y: 68 },
   ];
 
   const [iconPositions, setIconPositions] = useState(() => {
