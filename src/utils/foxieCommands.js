@@ -127,6 +127,35 @@ export const parseFoxieCommand = async (transcript) => {
 
     // Start Timer: "start timer", "start pomodoro", "set timer for..."
     if (text.includes('start timer') || text.includes('start pomodoro') || text.includes('set timer') || text.includes('focus')) {
+        // Extract duration
+        let duration = null;
+        const timeRegex = /(\d+)\s*(hour|hr|minute|min|second|sec)/g;
+        let match;
+        let totalSeconds = 0;
+        let found = false;
+
+        while ((match = timeRegex.exec(text)) !== null) {
+            found = true;
+            const value = parseInt(match[1]);
+            const unit = match[2];
+            
+            if (unit.startsWith('hour') || unit === 'hr') totalSeconds += value * 3600;
+            else if (unit.startsWith('minute') || unit === 'min') totalSeconds += value * 60;
+            else if (unit.startsWith('second') || unit === 'sec') totalSeconds += value;
+        }
+
+        if (found) {
+            duration = totalSeconds;
+            // Format duration for response
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            let timeText = '';
+            if (minutes > 0) timeText += `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            if (seconds > 0) timeText += `${minutes > 0 ? ' and ' : ''}${seconds} second${seconds !== 1 ? 's' : ''}`;
+            
+            return { type: 'START_TIMER', duration, text: `Starting timer for ${timeText}! ⏱️` };
+        }
+
         return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
     }
 
@@ -136,6 +165,60 @@ export const parseFoxieCommand = async (transcript) => {
     }
     if (text.includes('light mode') || text.includes('day mode')) {
         return { type: 'CHANGE_THEME', theme: 'light', text: 'Switching to light mode! ☀️' };
+    }
+
+    // Search: "search for [query]", "search [query] on browser"
+    if (text.startsWith('search for') || text.startsWith('search')) {
+        let query = text.replace('search for', '').replace('search', '').trim();
+        // Remove trailing "on browser" etc.
+        query = query.replace('on browser', '').replace('in browser', '').trim();
+        
+        if (query) {
+             return { type: 'BROWSER_SEARCH', query, text: `Searching for "${query}"... 🔍` };
+        }
+    }
+
+    // Browser: Go to URL - "go to youtube.com", "navigate to google.com"
+    if (text.startsWith('go to') || text.startsWith('navigate to')) {
+        let url = text.replace('go to', '').replace('navigate to', '').trim();
+        // Clean up common speech patterns
+        url = url.replace('dot', '.').replace(' ', '');
+        if (url && !url.includes(' ')) {
+            return { type: 'BROWSER_NAVIGATE', url, text: `Navigating to ${url}... 🌐` };
+        }
+    }
+
+    // Browser: Open known sites - "open youtube", "open wikipedia"
+    const knownSites = {
+        youtube: 'https://www.youtube.com',
+        wikipedia: 'https://www.wikipedia.org',
+        github: 'https://github.com',
+        twitter: 'https://twitter.com',
+        facebook: 'https://www.facebook.com',
+        reddit: 'https://www.reddit.com',
+        bing: 'https://www.bing.com',
+        google: 'https://www.google.com',
+    };
+    
+    for (const [siteName, siteUrl] of Object.entries(knownSites)) {
+        if (text.includes(`open ${siteName}`) || text.includes(`go to ${siteName}`)) {
+            return { type: 'BROWSER_NAVIGATE', url: siteUrl, text: `Opening ${siteName}... 🌐` };
+        }
+    }
+
+    // Browser: Clear/Home - "clear search", "go home", "browser home"
+    if (text.includes('clear search') || text.includes('go home') || text.includes('browser home')) {
+        return { type: 'BROWSER_HOME', text: 'Going to homepage... 🏠' };
+    }
+
+    // Browser: Refresh - "refresh", "refresh the page", "reload"
+    if (text.includes('refresh') || text.includes('reload')) {
+        return { type: 'BROWSER_REFRESH', text: 'Refreshing the page... 🔄' };
+    }
+
+    // Browser: Back - "go back", "back"
+    if (text === 'go back' || text === 'back' || text.includes('go back')) {
+        return { type: 'BROWSER_BACK', text: 'Going back... ⬅️' };
     }
 
     // Priority 3: AI Chat Fallback

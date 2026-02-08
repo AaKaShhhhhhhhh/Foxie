@@ -58,7 +58,7 @@ const Desktop = () => {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
-  const [timerState, setTimerState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work' });
+  const [timerState, setTimerState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work', commandId: null });
   const foxieSleepTimerRef = useRef(null);
   const windowsRef = useRef(windows); // Track latest windows for closures
 
@@ -213,6 +213,13 @@ const Desktop = () => {
     );
   }, []);
 
+  // Toggle window maximize
+  const toggleMaximize = useCallback((id) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w))
+    );
+  }, []);
+
   // Bring window to front
   const bringToFront = useCallback((id) => {
     setActiveWindowId(id);
@@ -227,7 +234,11 @@ const Desktop = () => {
     }, duration);
   }, []);
 
-  // Render app based on name
+  // Browser state
+  const [browserState, setBrowserState] = useState({ query: '', commandId: null });
+  // const [maximizedWindowId, setMaximizedWindowId] = useState(null); // Managed in windows array for simplicity or separate state
+
+  // Modify renderAppContent to pass browserState
   const renderAppContent = (appName) => {
     switch (appName) {
       case 'Foxie Assistant':
@@ -235,7 +246,7 @@ const Desktop = () => {
       case 'Notes':
         return <Notes />;
       case 'Timer':
-        return <Timer onNotify={addNotification} onTimerUpdate={setTimerState} />;
+        return <Timer onNotify={addNotification} onTimerUpdate={setTimerState} commandState={timerState} />;
       case 'Tasks':
       case 'Task Manager':
         return <Tasks />;
@@ -246,7 +257,7 @@ const Desktop = () => {
       case 'Weather':
         return <Weather />;
       case 'Browser':
-        return <Browser />;
+        return <Browser commandState={browserState} />;
       case 'Settings':
         return <Settings currentTheme={theme} onThemeChange={setTheme} />;
       default:
@@ -326,7 +337,34 @@ const Desktop = () => {
         addNotification('💕 Foxie feels loved!', 2000);
         break;
       case 'OPEN_APP':
+        if (command.app === 'Browser' && command.query) {
+             setBrowserState({ query: command.query, commandId: Date.now() });
+        }
         openWindow(command.app);
+        addNotification(command.text, 2000);
+        break;
+      case 'BROWSER_SEARCH':
+        // Open browser if not open, then search
+        setBrowserState({ action: 'search', query: command.query, commandId: Date.now() });
+        openWindow('Browser');
+        addNotification(command.text, 2000);
+        break;
+      case 'BROWSER_NAVIGATE':
+        // Open browser if not open, then navigate to URL
+        setBrowserState({ action: 'navigate', url: command.url, commandId: Date.now() });
+        openWindow('Browser');
+        addNotification(command.text, 2000);
+        break;
+      case 'BROWSER_HOME':
+        setBrowserState({ action: 'home', commandId: Date.now() });
+        addNotification(command.text, 2000);
+        break;
+      case 'BROWSER_REFRESH':
+        setBrowserState({ action: 'refresh', commandId: Date.now() });
+        addNotification(command.text, 2000);
+        break;
+      case 'BROWSER_BACK':
+        setBrowserState({ action: 'back', commandId: Date.now() });
         addNotification(command.text, 2000);
         break;
       case 'CLOSE_APP':
@@ -350,9 +388,16 @@ const Desktop = () => {
         break;
       case 'START_TIMER':
         // Immediate visual feedback + open app
-        setTimerState(prev => ({ ...prev, isRunning: true, sessionType: 'work', timeLeft: 25 * 60 }));
+        const duration = command.duration || 25 * 60;
+        setTimerState(prev => ({ 
+          ...prev, 
+          isRunning: true, 
+          sessionType: 'work', 
+          timeLeft: duration,
+          commandId: Date.now() 
+        }));
         openWindow('Timer');
-        addNotification('⏱️ Starting Timer!', 2000);
+        addNotification(command.text || '⏱️ Starting Timer!', 2000);
         break;
       case 'CHANGE_THEME':
         setTheme(command.theme);
@@ -467,8 +512,10 @@ const Desktop = () => {
                 title={window.name}
                 position={window.position}
                 noPadding={window.noPadding}
+                isMaximized={window.isMaximized}
                 onClose={() => closeWindow(window.id)}
                 onMinimize={() => toggleMinimize(window.id)}
+                onMaximize={() => toggleMaximize(window.id)}
                 onFocus={() => bringToFront(window.id)}
                 isActive={activeWindowId === window.id}
               >

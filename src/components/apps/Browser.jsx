@@ -1,31 +1,88 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 /**
  * Simple Browser App
  * Displays web content in an iframe
  */
-const Browser = () => {
-  const [url, setUrl] = useState('https://www.wikipedia.org');
-  const [inputUrl, setInputUrl] = useState('https://www.wikipedia.org');
+const Browser = ({ commandState }) => {
+  const HOMEPAGE = 'https://www.bing.com';
+  const [url, setUrl] = useState(HOMEPAGE);
+  const [inputUrl, setInputUrl] = useState(HOMEPAGE);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastCommandId, setLastCommandId] = useState(null);
+  const [history, setHistory] = useState([HOMEPAGE]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  // Handle commands from Foxie
+  useEffect(() => {
+    if (commandState?.commandId && commandState.commandId !== lastCommandId) {
+      setLastCommandId(commandState.commandId);
+      
+      const action = commandState.action || (commandState.query ? 'search' : null);
+      
+      switch (action) {
+        case 'search':
+          const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(commandState.query)}`;
+          navigateTo(searchUrl);
+          break;
+        case 'navigate':
+          let navUrl = commandState.url;
+          if (!navUrl.startsWith('http://') && !navUrl.startsWith('https://')) {
+            navUrl = 'https://' + navUrl;
+          }
+          navigateTo(navUrl);
+          break;
+        case 'home':
+          navigateTo(HOMEPAGE);
+          break;
+        case 'refresh':
+          // Force refresh by setting to empty string then back
+          setUrl('');
+          setTimeout(() => setUrl(history[historyIndex]), 50);
+          break;
+        case 'back':
+          goBack();
+          break;
+        default:
+          break;
+      }
+    }
+  }, [commandState, lastCommandId]);
+
+  const navigateTo = (newUrl) => {
+    setIsLoading(true);
+    setUrl(newUrl);
+    setInputUrl(newUrl);
+    // Add to history
+    setHistory(prev => [...prev.slice(0, historyIndex + 1), newUrl]);
+    setHistoryIndex(prev => prev + 1);
+  };
+
+  const goBack = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      const prevUrl = history[newIndex];
+      setUrl(prevUrl);
+      setInputUrl(prevUrl);
+    }
+  };
 
   const handleNavigate = useCallback((e) => {
     e.preventDefault();
     let newUrl = inputUrl.trim();
     
-    // Add protocol if missing
     if (!newUrl.startsWith('http://') && !newUrl.startsWith('https://')) {
       newUrl = 'https://' + newUrl;
     }
     
-    setIsLoading(true);
-    setUrl(newUrl);
+    navigateTo(newUrl);
   }, [inputUrl]);
 
   const quickLinks = [
     { name: 'Wikipedia', url: 'https://www.wikipedia.org' },
-    { name: 'MDN', url: 'https://developer.mozilla.org' },
-    { name: 'GitHub', url: 'https://github.com' },
+    { name: 'YouTube', url: 'https://www.youtube.com' },
+    { name: 'Bing', url: 'https://www.bing.com' },
   ];
 
   return (

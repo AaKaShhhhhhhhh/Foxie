@@ -7,15 +7,21 @@ const Window = ({
   children,
   onClose,
   onMinimize,
+  onMaximize, // New prop
   onFocus,
   isActive,
+  isMaximized, // New prop
   noPadding = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [pos, setPos] = useState(position);
 
+  // Sync position prop if not maximized (optional, depends on architecture)
+  // For now, we rely on parent for maximization style, but local pos for dragging.
+
   const handleMouseDown = (e) => {
+    if (isMaximized) return; // Disable dragging when maximized
     if (e.target.closest('.window-controls')) return;
     setIsDragging(true);
     setDragOffset({
@@ -37,14 +43,27 @@ const Window = ({
     setIsDragging(false);
   };
 
-  return (
-    <div
-      className={`window ${isActive ? 'active' : ''}`}
-      data-window-id={id}
-      style={{
+  const style = isMaximized
+    ? {
+        left: 0,
+        top: '60px', // TopBar height (approx)
+        width: '100%',
+        height: 'calc(100vh - 60px - 56px)', // Minus TopBar and Taskbar
+        transform: 'none',
+        borderRadius: 0,
+        zIndex: isActive ? 100 : 10, // Ensure it's on top
+      }
+    : {
         left: `${pos.x}px`,
         top: `${pos.y}px`,
-      }}
+        zIndex: isActive ? 100 : 10,
+      };
+
+  return (
+    <div
+      className={`window ${isActive ? 'active' : ''} ${isMaximized ? 'maximized' : ''}`}
+      data-window-id={id}
+      style={style}
       onMouseDown={onFocus}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -54,14 +73,17 @@ const Window = ({
       <div
         className="window-titlebar"
         onMouseDown={handleMouseDown}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onDoubleClick={onMaximize} // Double click to maximize
+        style={{ cursor: isMaximized ? 'default' : (isDragging ? 'grabbing' : 'grab') }}
       >
         <span className="window-title">{title}</span>
         <div className="window-controls">
           <button className="window-button minimize" onClick={onMinimize}>
             −
           </button>
-          <button className="window-button maximize">□</button>
+          <button className="window-button maximize" onClick={onMaximize}>
+            {isMaximized ? '❐' : '□'}
+          </button>
           <button className="window-button close" onClick={onClose}>
             ✕
           </button>

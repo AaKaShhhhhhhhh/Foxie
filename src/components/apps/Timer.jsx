@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
 
-const Timer = ({ onNotify, onTimerUpdate }) => {
+const Timer = ({ onNotify, onTimerUpdate, commandState }) => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
   const [sessionType, setSessionType] = useState('work'); // 'work' or 'break'
+  const [lastCommandId, setLastCommandId] = useState(null);
+
+  // Sync from command
+  useEffect(() => {
+    if (commandState?.commandId && commandState.commandId !== lastCommandId) {
+      setLastCommandId(commandState.commandId);
+      setIsRunning(commandState.isRunning);
+      setSessionType(commandState.sessionType);
+      setTimeLeft(commandState.timeLeft);
+    }
+  }, [commandState, lastCommandId]);
 
   // Sync state with parent
   useEffect(() => {
     if (onTimerUpdate) {
-      onTimerUpdate({ isRunning, timeLeft, sessionType });
+      // Don't sync back immediately if we just received a command to avoid loops
+      // But actually, passing commandId back isn't harmful, just redundant.
+      // We can preserve commandId.
+      onTimerUpdate({ isRunning, timeLeft, sessionType, commandId: lastCommandId });
     }
   }, [isRunning, timeLeft, sessionType, onTimerUpdate]);
 
