@@ -130,6 +130,14 @@ export const parseFoxieCommand = async (transcript) => {
         return { type: 'START_TIMER', text: 'Starting timer! Let\'s focus. ⏱️' };
     }
 
+    // Change Theme: "switch to dark mode", "enable light mode"
+    if (text.includes('dark mode') || text.includes('night mode')) {
+        return { type: 'CHANGE_THEME', theme: 'dark', text: 'Switching to dark mode! 🌙' };
+    }
+    if (text.includes('light mode') || text.includes('day mode')) {
+        return { type: 'CHANGE_THEME', theme: 'light', text: 'Switching to light mode! ☀️' };
+    }
+
     // Priority 3: AI Chat Fallback
     // Any request that doesn't match a known command is treated as general chat.
     try {

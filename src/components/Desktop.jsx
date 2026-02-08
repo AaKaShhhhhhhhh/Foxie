@@ -354,6 +354,10 @@ const Desktop = () => {
         openWindow('Timer');
         addNotification('⏱️ Starting Timer!', 2000);
         break;
+      case 'CHANGE_THEME':
+        setTheme(command.theme);
+        addNotification(command.text, 2000);
+        break;
       case 'CHAT':
         // Route long responses to PreviewWindow, short ones to notification
         const LONG_RESPONSE_THRESHOLD = 100; // characters
