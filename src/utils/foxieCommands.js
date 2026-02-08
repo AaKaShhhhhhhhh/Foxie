@@ -44,6 +44,7 @@ export const parseFoxieCommand = async (transcript) => {
             'notepad': 'Notes',
             'tasks': 'Task Manager',
             'task': 'Task Manager',
+            'task manager': 'Task Manager',
             'todo': 'Task Manager',
             'to-do': 'Task Manager',
             'pomodoro': 'Timer',
@@ -51,8 +52,21 @@ export const parseFoxieCommand = async (transcript) => {
             'clock': 'Timer',
             'dashboard': 'Dashboard',
             'stats': 'Dashboard',
+            'productivity': 'Dashboard',
             'assistant': 'Foxie Assistant',
-            'chat': 'Foxie Assistant'
+            'foxie': 'Foxie Assistant',
+            'chat': 'Foxie Assistant',
+            'calculator': 'Calculator',
+            'calc': 'Calculator',
+            'math': 'Calculator',
+            'weather': 'Weather',
+            'forecast': 'Weather',
+            'browser': 'Browser',
+            'web': 'Browser',
+            'internet': 'Browser',
+            'settings': 'Settings',
+            'preferences': 'Settings',
+            'config': 'Settings'
         };
 
         for (const [key, appName] of Object.entries(appMap)) {
@@ -73,11 +87,11 @@ export const parseFoxieCommand = async (transcript) => {
             'notes': 'Notes',
             'note': 'Notes',
             'notepad': 'Notes',
-            'tasks': 'Tasks',
-            'task': 'Tasks',
-            'task manager': 'Tasks',
-            'todo': 'Tasks',
-            'to-do': 'Tasks',
+            'tasks': 'Task Manager',
+            'task': 'Task Manager',
+            'task manager': 'Task Manager',
+            'todo': 'Task Manager',
+            'to-do': 'Task Manager',
             'pomodoro': 'Timer',
             'timer': 'Timer',
             'clock': 'Timer',
@@ -85,8 +99,20 @@ export const parseFoxieCommand = async (transcript) => {
             'stats': 'Dashboard',
             'productivity': 'Dashboard',
             'assistant': 'Foxie Assistant',
+            'foxie': 'Foxie Assistant',
             'chat': 'Foxie Assistant',
-            'windows': 'all' // Special: closes all
+            'calculator': 'Calculator',
+            'calc': 'Calculator',
+            'math': 'Calculator',
+            'weather': 'Weather',
+            'forecast': 'Weather',
+            'browser': 'Browser',
+            'web': 'Browser',
+            'internet': 'Browser',
+            'settings': 'Settings',
+            'preferences': 'Settings',
+            'config': 'Settings',
+            'windows': 'all'
         };
 
         for (const [key, appName] of Object.entries(appMap)) {

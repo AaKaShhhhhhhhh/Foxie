@@ -1,34 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * Settings App
  * Basic settings for the Foxie Desktop
  */
-const Settings = ({ onSettingsChange }) => {
+const Settings = ({ onSettingsChange, currentTheme = 'dark', onThemeChange }) => {
   const [settings, setSettings] = useState({
-    theme: 'light',
+    theme: currentTheme,
     notifications: true,
     soundEffects: true,
     foxieVoice: true,
     autoHideTaskbar: false,
   });
 
+  // Sync theme with parent when it changes externally
+  useEffect(() => {
+    if (currentTheme !== settings.theme) {
+      setSettings(prev => ({ ...prev, theme: currentTheme }));
+    }
+  }, [currentTheme]);
+
   const updateSetting = (key, value) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     if (onSettingsChange) onSettingsChange(newSettings);
+    // If theme changed, notify parent immediately
+    if (key === 'theme' && onThemeChange) {
+      onThemeChange(value);
+    }
   };
 
   return (
     <div className="settings-app">
       <div className="settings-header">
-        <h2>⚙️ Settings</h2>
+        <h2>Settings</h2>
       </div>
 
       <div className="settings-sections">
         {/* Appearance */}
         <div className="settings-section">
-          <h3>🎨 Appearance</h3>
+          <h3>Appearance</h3>
           <div className="setting-item">
             <span className="setting-label">Theme</span>
             <select
@@ -38,14 +49,13 @@ const Settings = ({ onSettingsChange }) => {
             >
               <option value="light">Light</option>
               <option value="dark">Dark</option>
-              <option value="auto">Auto</option>
             </select>
           </div>
         </div>
 
         {/* Notifications */}
         <div className="settings-section">
-          <h3>🔔 Notifications</h3>
+          <h3>Notifications</h3>
           <div className="setting-item">
             <span className="setting-label">Show notifications</span>
             <label className="toggle-switch">
@@ -72,7 +82,7 @@ const Settings = ({ onSettingsChange }) => {
 
         {/* Foxie */}
         <div className="settings-section">
-          <h3>🦊 Foxie</h3>
+          <h3>Foxie</h3>
           <div className="setting-item">
             <span className="setting-label">Voice commands</span>
             <label className="toggle-switch">
@@ -88,7 +98,7 @@ const Settings = ({ onSettingsChange }) => {
 
         {/* Taskbar */}
         <div className="settings-section">
-          <h3>📌 Taskbar</h3>
+          <h3>Taskbar</h3>
           <div className="setting-item">
             <span className="setting-label">Auto-hide taskbar</span>
             <label className="toggle-switch">

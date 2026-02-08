@@ -38,6 +38,19 @@ const Desktop = () => {
   const [focusTime, setFocusTime] = useState(0);
   const [lastAppOpened, setLastAppOpened] = useState(null);
 
+  // Theme state with localStorage persistence
+  const THEME_STORAGE_KEY = 'foxie_theme';
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    return saved || 'dark';
+  });
+
+  // Persist theme to localStorage and apply to document
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   // Foxie state
   const [foxieAwake, setFoxieAwake] = useState(false);
   const [foxieListening, setFoxieListening] = useState(false);
@@ -81,7 +94,7 @@ const Desktop = () => {
     { id: 'weather', name: 'Weather', icon: '', x: 20, y: 368 },
     { id: 'browser', name: 'Browser', icon: '', x: 120, y: 68 },
     { id: 'timer', name: 'Timer', icon: '', x: 120, y: 168 },
-    { id: 'tasks', name: 'Tasks', icon: '', x: 120, y: 268 },
+    { id: 'tasks', name: 'Task Manager', icon: '', x: 120, y: 268 },
     { id: 'dashboard', name: 'Dashboard', icon: '', x: 120, y: 368 },
     { id: 'settings', name: 'Settings', icon: '', x: 220, y: 68 },
   ];
@@ -223,6 +236,7 @@ const Desktop = () => {
         return <Notes />;
       case 'Timer':
         return <Timer onNotify={addNotification} onTimerUpdate={setTimerState} />;
+      case 'Tasks':
       case 'Task Manager':
         return <Tasks />;
       case 'Dashboard':
@@ -234,7 +248,7 @@ const Desktop = () => {
       case 'Browser':
         return <Browser />;
       case 'Settings':
-        return <Settings />;
+        return <Settings currentTheme={theme} onThemeChange={setTheme} />;
       default:
         return <div className="app-placeholder">App: {appName}</div>;
     }
@@ -408,7 +422,7 @@ const Desktop = () => {
 
   return (
     <AdaptiveUIProvider appState={appState}>
-      <div className="desktop">
+      <div className={`desktop theme-${theme}`}>
         {/* Desktop Background with Draggable Icons */}
         <div className="desktop-background">
           {iconPositions.map((app) => (

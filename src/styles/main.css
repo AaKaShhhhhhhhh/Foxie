@@ -2682,19 +2682,21 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f9f9f9;
+  background: #1a1a2e;
+  color: #e0e0e0;
 }
 
 .settings-header {
   padding: 20px;
-  background: white;
-  border-bottom: 1px solid #eee;
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
 }
 
 .settings-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .settings-sections {
@@ -2704,18 +2706,19 @@ body {
 }
 
 .settings-section {
-  background: white;
+  background: #16213e;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2a4a;
 }
 
 .settings-section h3 {
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #666;
+  color: #a0a0c0;
 }
 
 .setting-item {
@@ -2723,7 +2726,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #2a2a4a;
 }
 
 .setting-item:last-child {
@@ -2732,15 +2735,21 @@ body {
 
 .setting-label {
   font-size: 14px;
-  color: #333;
+  color: #e0e0e0;
 }
 
 .setting-select {
   padding: 6px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #3a3a5a;
   border-radius: 6px;
   font-size: 13px;
   outline: none;
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+.setting-select:focus {
+  border-color: #0078d4;
 }
 
 /* Toggle Switch */
@@ -2763,7 +2772,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #3a3a5a;
   transition: 0.3s;
   border-radius: 24px;
 }
@@ -2791,12 +2800,273 @@ body {
 .settings-footer {
   padding: 16px;
   text-align: center;
-  background: white;
-  border-top: 1px solid #eee;
+  background: #16213e;
+  border-top: 1px solid #2a2a4a;
 }
 
 .settings-version {
   margin: 0;
   font-size: 12px;
   color: #999;
+}
+/* ==================== THEME: LIGHT ==================== */
+/* Light theme overrides - applied when .theme-light class is on .desktop */
+
+.theme-light {
+  background: linear-gradient(180deg, #e8f4fc 0%, #d0e8f8 100%);
+}
+
+.theme-light .desktop-background {
+  background: linear-gradient(180deg, #e8f4fc 0%, #d0e8f8 100%);
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(0, 120, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 120, 212, 0.05) 0%, transparent 50%);
+}
+
+.theme-light .taskbar {
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .start-button {
+  background: linear-gradient(135deg, #0078d4 0%, #0063b1 100%);
+}
+
+.theme-light .system-tray {
+  color: #333;
+}
+
+.theme-light .window {
+  background: #ffffff;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+}
+
+.theme-light .window-content {
+  background: #ffffff;
+  color: #333;
+}
+
+/* Light theme for Settings app */
+.theme-light .settings-app {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.theme-light .settings-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.theme-light .settings-header h2 {
+  color: #333;
+}
+
+.theme-light .settings-section {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .settings-section h3 {
+  color: #666;
+}
+
+.theme-light .setting-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.theme-light .setting-label {
+  color: #333;
+}
+
+.theme-light .setting-select {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.theme-light .toggle-slider {
+  background-color: #ccc;
+}
+
+.theme-light .settings-footer {
+  background: #ffffff;
+  border-top: 1px solid #e0e0e0;
+}
+
+.theme-light .settings-version {
+  color: #999;
+}
+
+/* Light theme for other apps */
+.theme-light .app-notes,
+.theme-light .app-tasks,
+.theme-light .app-pomodoro {
+  background: #ffffff;
+  color: #333;
+}
+
+.theme-light .notes-textarea {
+  background: #f9f9f9;
+  color: #333;
+}
+
+.theme-light .task-item {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+
+/* Light theme desktop icons */
+.theme-light .desktop-icon-label {
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Light theme Start Menu */
+.theme-light .start-menu {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 245, 0.95) 100%);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .start-menu-header {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.theme-light .app-launcher {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #333;
+}
+
+.theme-light .app-launcher:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme for Top Bar */
+.theme-light .desktop-top-bar {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.theme-light .desktop-top-bar .top-bar-item {
+  color: #333;
+}
+
+.theme-light .desktop-top-bar .top-bar-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Light theme for Calculator */
+.theme-light .calculator-app,
+.theme-light .app-calculator {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.theme-light .calculator-display {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #e0e0e0;
+}
+
+.theme-light .calculator-button {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #e0e0e0;
+}
+
+.theme-light .calculator-button:hover {
+  background: #f0f0f0;
+}
+
+.theme-light .calculator-button.operator {
+  background: #0078d4;
+  color: white;
+}
+
+/* Light theme for Weather */
+.theme-light .weather-app,
+.theme-light .app-weather {
+  background: linear-gradient(180deg, #87ceeb 0%, #e0f0ff 100%);
+  color: #333;
+}
+
+/* Light theme for Browser */
+.theme-light .browser-app,
+.theme-light .app-browser {
+  background: #ffffff;
+  color: #333;
+}
+
+.theme-light .browser-toolbar {
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.theme-light .browser-url-input {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+/* Light theme for Dashboard */
+.theme-light .productivity-dashboard,
+.theme-light .dashboard-app {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.theme-light .dashboard-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .dashboard-card h3,
+.theme-light .dashboard-card h4 {
+  color: #333;
+}
+
+.theme-light .dashboard-stat {
+  color: #666;
+}
+
+/* Light theme for Assistant Chat */
+.theme-light .assistant-chat {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.theme-light .chat-messages {
+  background: #ffffff;
+}
+
+.theme-light .chat-message {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.theme-light .chat-message.user {
+  background: #0078d4;
+  color: white;
+}
+
+.theme-light .chat-input {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+/* Light theme for Notifications */
+.theme-light .notification {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Light theme window titlebar - keep it blue for contrast */
+.theme-light .window-titlebar {
+  background: linear-gradient(90deg, #0078d4 0%, #0063b1 100%);
 }
