@@ -59,6 +59,7 @@ const Desktop = () => {
   const [voiceVisualizer, setVoiceVisualizer] = useState(Array(12).fill(0));
   const [lastFoxieCommand, setLastFoxieCommand] = useState(null);
   const [foxieEmotion, setFoxieEmotion] = useState('neutral'); // AI-detected emotion
+  const [foxieHidden, setFoxieHidden] = useState(false); // Auto-hide when windows overlap
   const [timerState, setTimerState] = useState({ isRunning: false, timeLeft: 0, sessionType: 'work', commandId: null });
   const foxieSleepTimerRef = useRef(null);
   const windowsRef = useRef(windows); // Track latest windows for closures
@@ -67,6 +68,47 @@ const Desktop = () => {
   useEffect(() => {
     windowsRef.current = windows;
   }, [windows]);
+
+  // Foxie default position (bottom-right, 80% x, 70% y)
+  const FOXIE_POSITION = { x: 80, y: 70, width: 150, height: 150 };
+
+  // Detect if any window overlaps Foxie and auto-hide
+  useEffect(() => {
+    if (!foxieAwake || windows.length === 0) {
+      setFoxieHidden(false);
+      return;
+    }
+
+    const foxieRect = {
+      left: (window.innerWidth * FOXIE_POSITION.x / 100) - FOXIE_POSITION.width / 2,
+      right: (window.innerWidth * FOXIE_POSITION.x / 100) + FOXIE_POSITION.width / 2,
+      top: (window.innerHeight * FOXIE_POSITION.y / 100) - FOXIE_POSITION.height / 2,
+      bottom: (window.innerHeight * FOXIE_POSITION.y / 100) + FOXIE_POSITION.height / 2,
+    };
+
+    // Check if any non-minimized window overlaps Foxie
+    const overlapping = windows.some(w => {
+      if (w.isMinimized) return false;
+      const pos = w.position || { x: 100, y: 100 };
+      const defaultWidth = 400;
+      const defaultHeight = 300;
+      
+      const winRect = {
+        left: pos.x,
+        right: pos.x + defaultWidth,
+        top: pos.y,
+        bottom: pos.y + defaultHeight,
+      };
+
+      // Check overlap
+      return !(winRect.right < foxieRect.left || 
+               winRect.left > foxieRect.right || 
+               winRect.bottom < foxieRect.top || 
+               winRect.top > foxieRect.bottom);
+    });
+
+    setFoxieHidden(overlapping);
+  }, [windows, foxieAwake]);
 
   // Preview Window state (AI-controlled)
   const [previewWindow, setPreviewWindow] = useState({
@@ -312,6 +354,7 @@ const Desktop = () => {
   const handleFoxieCommand = useCallback((command) => {
     console.log('Desktop: handleFoxieCommand received:', command);
     setLastFoxieCommand(command);
+    setFoxieHidden(false); // Reappear on any voice command
     scheduleFoxieSleep();
 
     // Execute life simulation commands
@@ -539,6 +582,7 @@ const Desktop = () => {
               mood={foxieMood}
               emotion={foxieEmotion}
               isAwake={foxieAwake}
+              isHidden={foxieHidden}
               isListening={foxieListening}
               lastCommand={lastFoxieCommand}
               needs={needs}

@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
 const Timer = ({ onNotify, onTimerUpdate, commandState }) => {
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
-  const [isRunning, setIsRunning] = useState(false);
-  const [sessionType, setSessionType] = useState('work'); // 'work' or 'break'
-  const [lastCommandId, setLastCommandId] = useState(null);
+  // Initialize from commandState if available, otherwise default to 25 minutes
+  const [timeLeft, setTimeLeft] = useState(() => commandState?.timeLeft || 25 * 60);
+  const [isRunning, setIsRunning] = useState(() => commandState?.isRunning || false);
+  const [sessionType, setSessionType] = useState(() => commandState?.sessionType || 'work');
+  const [lastCommandId, setLastCommandId] = useState(commandState?.commandId || null);
 
-  // Sync from command
+  // Sync from command - always update when commandId changes
   useEffect(() => {
     if (commandState?.commandId && commandState.commandId !== lastCommandId) {
+      console.log('Timer: Syncing from commandState:', commandState);
       setLastCommandId(commandState.commandId);
-      setIsRunning(commandState.isRunning);
-      setSessionType(commandState.sessionType);
-      setTimeLeft(commandState.timeLeft);
+      setIsRunning(commandState.isRunning ?? false);
+      setSessionType(commandState.sessionType || 'work');
+      setTimeLeft(commandState.timeLeft ?? 25 * 60);
     }
   }, [commandState, lastCommandId]);
 

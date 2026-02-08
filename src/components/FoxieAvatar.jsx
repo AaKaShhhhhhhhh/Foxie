@@ -10,6 +10,7 @@ const FoxieAvatar = ({
   mood = 'happy',
   emotion = 'neutral', // AI-detected emotion from chat
   isAwake = true,
+  isHidden = false, // Auto-hide when windows overlap
   isListening = false,
   lastCommand = null,
   onInteraction,
@@ -442,6 +443,12 @@ const FoxieAvatar = ({
       rotate: [0, 360],
       x: [0, 10, -10, 10, 0],
       transition: { repeat: Infinity, duration: 2, ease: "linear" }
+    },
+    hidden: {
+      x: '100%', // Slide off to the right
+      opacity: 0,
+      scale: 0.8,
+      transition: { duration: 0.5, ease: 'easeInOut' }
     }
   };
 
@@ -536,7 +543,7 @@ const FoxieAvatar = ({
         className={`foxie-avatar-container ${currentAnimation}`}
         style={getAnimationStyles()}
         variants={avatarVariants}
-        animate={currentAnimation}
+        animate={isHidden ? 'hidden' : currentAnimation}
         initial="idle"
         exit={{ scale: 0, opacity: 0 }}
         drag
