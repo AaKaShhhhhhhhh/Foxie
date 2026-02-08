@@ -33,6 +33,10 @@ A premium web-based desktop environment featuring an emotionally intelligent, au
 - Node.js 18+
 - npm or yarn
 
+### NOTE
+- Please use chrome or edge browser to properly run Foxie if running    through render link.
+- Clear your browser cache and cookies before running Foxie. 
+
 ### Setup
 
 1. **Clone & Install**:
@@ -103,6 +107,3 @@ e:/Foxie
 
 ---
 
-### NOTE
-- Please use chrome or edge browser to properly run Foxie.
-- Clear your browser cache and cookies before running Foxie. 
